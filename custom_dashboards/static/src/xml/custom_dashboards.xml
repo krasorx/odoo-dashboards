@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Part of Odoo. See LICENSE file for full copyright and licensing details. -->
+<templates id="template_custom_dashboards_dashboard" inherit_id="website.contactus">
+    <t t-call="custom_dashboards.dashboard"/>
+</templates>
+
+<templates id="layout_custom_dashboards_dashboard" inherit_id="website.layout">
+    <div name="custom_dashboard_container" class="custom-dashboard">
+        <!-- KPI Cards Section -->
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8 text-center">Dashboard</h1>
+            
+            <div class="grid-kpi" id="kpi-section">
+                <!-- Invoiced This Month -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">💵</div>
+                    <div class="kpi-card__value" t-esc="invoiced_amount" t-options='{"format": "currency"}'>0.00</div>
+                    <div class="kpi-card__label">Invoiced This Month</div>
+                </div>
+
+                <!-- Sales Invoices -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">📄</div>
+                    <div class="kpi-card__value" t-esc="invoice_count">0</div>
+                    <div class="kpi-card__label">Sales Invoices</div>
+                </div>
+
+                <!-- Manufacturing Orders Completed -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">🏭</div>
+                    <div class="kpi-card__value" t-esc="mps_completed_count">0</div>
+                    <div class="kpi-card__label">Manufacturing Orders Done</div>
+                </div>
+
+                <!-- Manufacturing Qty -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">📦</div>
+                    <div class="kpi-card__value" t-esc="mps_total_qty" t-options='{"format": "float"}'>0.00</div>
+                    <div class="kpi-card__label">Total Qty Produced</div>
+                </div>
+
+                <!-- Sales Pending -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">⏳</div>
+                    <div class="kpi-card__value" t-esc="sales_pending_count">0</div>
+                    <div class="kpi-card__label">Sales to Deliver</div>
+                </div>
+
+                <!-- Sales Pending Amount -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">📋</div>
+                    <div class="kpi-card__value" t-esc="sales_pending_amount" t-options='{"format": "currency"}'>0.00</div>
+                    <div class="kpi-card__label">Pending Sales Amount</div>
+                </div>
+
+                <!-- Overdue Invoices -->
+                <div class="kpi-card bg-red-50 border-red-200">
+                    <div class="kpi-card__icon">⚠️</div>
+                    <div class="kpi-card__value" t-esc="overdue_count">0</div>
+                    <div class="kpi-card__label">Overdue Invoices</div>
+                </div>
+
+                <!-- Total Revenue -->
+                <div class="kpi-card">
+                    <div class="kpi-card__icon">📈</div>
+                    <div class="kpi-card__value" t-esc="invoiced_amount + sales_pending_amount" t-options='{"format": "currency"}'>0.00</div>
+                    <div class="kpi-card__label">Total Revenue (Invoiced + Pending)</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="container mx-auto px-4 mt-8">
+                <div class="section-header">
+                    <h2 class="section-header__title">Monthly Sales Trend</h2>
+                </div>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="sales-chart"></canvas>
+                </div>
+
+                <!-- Top Products Table -->
+                <div class="section-header">
+                    <h2 class="section-header__title">Top Products by Sales</h2>
+                </div>
+                <div class="chart-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty Sold</th>
+                                <th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="top_products_data" t-as="product">
+                                <tr>
+                                    <td t-esc="product[0].name or 'Product'"></td>
+                                    <td t-esc="product[1]">0</td>
+                                    <td t-esc="(product[1] * product[2])" t-options='{"format": "float"}'>0.00</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Manufacturing Orders Table -->
+            <div class="container mx-auto px-4 mt-8">
+                <div class="section-header">
+                    <h2 class="section-header__title">Recent Manufacturing Orders</h2>
+                </div>
+                <div class="chart-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>MO Number</th>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="mps_completed_count > 0 and True or False" t-as="mo">
+                                <!-- Add MO data here -->
+                                <tr>
+                                    <td>MO-2024-001</td>
+                                    <td>Product A</td>
+                                    <td>50</td>
+                                    <td><span class="status-badge status-badge-success">Completed</span></td>
+                                    <td>2024-01-15</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Overdue Invoices Table -->
+            <div class="container mx-auto px-4 mt-8">
+                <div class="section-header">
+                    <h2 class="section-header__title">Overdue Invoices</h2>
+                </div>
+                <div class="chart-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="overdue_count > 0 and True or False" t-as="invoice">
+                                <!-- Add invoice data here -->
+                                <tr>
+                                    <td>INV/2024/001</td>
+                                    <td>Customer Name</td>
+                                    <td t-esc="invoice[2]" t-options='{"format": "currency"}'>0.00</td>
+                                    <td>2024-01-31</td>
+                                    <td><span class="status-badge status-badge-danger">Overdue</span></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</templates>

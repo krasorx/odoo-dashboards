@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pestaña Equipos MRP en el formulario del empleado -->
+    <record id="hr_employee_view_form_mrp_teams" model="ir.ui.view">
+        <field name="name">hr.employee.form.mrp.teams</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Equipos MRP" name="mrp_teams">
+                    <group>
+                        <field name="mrp_team_ids"
+                               widget="many2many_tags"
+                               string="Equipos MRP"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <!-- Server action: copiar foto de empleado al usuario vinculado -->
+    <record id="action_sync_employee_photo" model="ir.actions.server">
+        <field name="name">Sincronizar Foto a Usuario</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+for employee in records:
+    if employee.user_id and not employee.user_id.image_1920:
+        employee.user_id.sudo().write({'image_1920': employee.image_1920})
+        </field>
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+</odoo>

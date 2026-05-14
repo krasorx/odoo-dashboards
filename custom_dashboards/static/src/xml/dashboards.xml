@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Dashboard Container -->
+    <div id="dashboard-container"></div>
+    
+    <!-- Base Styles -->
+    <link href="/web/content/custom_dashboards/static/src/css/base.css" rel="stylesheet" />
+    
+    <!-- Tailwind CSS CDN (optional override for compatibility) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</body>
+</html>

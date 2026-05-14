@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+
+# Odoo
+*.log
+.odoo_history
+
+# Node / Tailwind
+node_modules/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Brainstorm
+.superpowers/

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Part of Odoo. See LICENSE file for full copyright and licensing details. -->
+<template id="custom_dashboards_dashboard">
+    <t t-call="web.layout">
+        <div id="dashboard-container" class="min-h-screen bg-gray-50 font-sans">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+                <div class="max-w-7xl mx-auto flex justify-between items-center">
+                    <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
+                    <div class="flex gap-2">
+                        <button class="refresh-btn px-4 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition" t-on-click="loadData">
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Invoiced This Month -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">💵</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="invoiced_amount" t-options='{"format": "currency"}'>0.00</div>
+                        <div class="text-sm text-gray-500 mt-2">Invoiced This Month</div>
+                    </div>
+
+                    <!-- Sales Invoices -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">📄</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="invoice_count">0</div>
+                        <div class="text-sm text-gray-500 mt-2">Sales Invoices</div>
+                    </div>
+
+                    <!-- Manufacturing Orders Done -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">🏭</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="mps_completed_count">0</div>
+                        <div class="text-sm text-gray-500 mt-2">Manufacturing Orders Done</div>
+                    </div>
+
+                    <!-- Total Qty Produced -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">📦</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="mps_total_qty" t-options='{"format": "float"}'>0.00</div>
+                        <div class="text-sm text-gray-500 mt-2">Total Qty Produced</div>
+                    </div>
+
+                    <!-- Sales to Deliver -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">⏳</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="sales_pending_count">0</div>
+                        <div class="text-sm text-gray-500 mt-2">Sales to Deliver</div>
+                    </div>
+
+                    <!-- Pending Sales Amount -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">📋</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="sales_pending_amount" t-options='{"format": "currency"}'>0.00</div>
+                        <div class="text-sm text-gray-500 mt-2">Pending Sales Amount</div>
+                    </div>
+
+                    <!-- Overdue Invoices -->
+                    <div class="bg-red-50 rounded-lg shadow-sm border border-red-200 p-6">
+                        <div class="text-3xl mb-4">⚠️</div>
+                        <div class="text-3xl font-bold text-red-800" t-esc="overdue_count">0</div>
+                        <div class="text-sm text-gray-500 mt-2">Overdue Invoices</div>
+                    </div>
+
+                    <!-- Total Revenue -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="text-3xl mb-4">📈</div>
+                        <div class="text-3xl font-bold text-gray-900" t-esc="totalRevenue" t-options='{"format": "currency"}'>0.00</div>
+                        <div class="text-sm text-gray-500 mt-2">Total Revenue</div>
+                    </div>
+                </div>
+
+                <!-- Monthly Sales Trend Chart -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Monthly Sales Trend</h2>
+                    <canvas id="sales-chart" style="height: 300px;"></canvas>
+                </div>
+
+                <!-- Top Products -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Top Products by Sales</h2>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Qty Sold</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="top_products_data" t-as="product">
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="product[0].name or 'Product'"></td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="product[1]">0</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="(product[1] * product[2])" t-options='{"format": "float"}'>0.00</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Manufacturing Orders -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Recent Manufacturing Orders</h2>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">MO Number</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Qty</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="mps_completed_count > 0" t-foreach="mps_completed_data" t-as="mo">
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">MO-2024-001</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="mo[0].name or 'Product'"></td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="mo[1]">50</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span></td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">2024-01-15</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Overdue Invoices -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Overdue Invoices</h2>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Invoice #</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Due Date</th>
+                                <th class="px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="overdue_count > 0" t-foreach="overdue_invoices_data" t-as="invoice">
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">INV/2024/001</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="invoice[0].name or 'Customer'"></td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100" t-esc="invoice[2]" t-options='{"format": "currency"}'>0.00</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">2024-01-31</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 border-t border-gray-100"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Overdue</span></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-gray-50 border-t border-gray-200 px-4 py-3 mt-8">
+                <div class="text-center text-sm text-gray-500">Custom Dashboards v1.0 - Built with Tailwind CSS & Odoo 18 OWL</div>
+            </footer>
+        </div>
+    </t>
+
+    <!-- Dashboard Component -->
+    <script type="text/javascript" src="/web/static/src/js/core.js"></script>
+    <script type="text/javascript" src="/custom_dashboards/static/src/js/Dashboard.js"></script>
+</template>

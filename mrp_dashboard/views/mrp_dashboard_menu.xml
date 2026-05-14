@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Acción cliente que monta el componente OWL MrpDashboard -->
+    <record id="action_mrp_dashboard_client" model="ir.actions.client">
+        <field name="name">Dashboard Semanal</field>
+        <field name="tag">mrp_dashboard.MrpDashboard</field>
+    </record>
+
+    <!-- Ítem de menú bajo Manufacturing (secuencia 5 = primera posición) -->
+    <menuitem
+        id="menu_mrp_dashboard"
+        name="Dashboard Semanal"
+        parent="mrp.menu_mrp_root"
+        action="action_mrp_dashboard_client"
+        sequence="5"/>
+
+    <!-- Ítem de configuración: Equipos MRP (solo system admin) -->
+    <menuitem
+        id="menu_mrp_teams"
+        name="Equipos MRP"
+        parent="mrp.menu_mrp_configuration"
+        action="action_mrp_team"
+        groups="base.group_system"
+        sequence="100"/>
+</odoo>
