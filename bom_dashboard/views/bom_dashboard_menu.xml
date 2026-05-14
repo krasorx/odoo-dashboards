@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_bom_dashboard_client" model="ir.actions.client">
+        <field name="name">Dashboard BOM</field>
+        <field name="tag">bom_dashboard.BomDashboard</field>
+    </record>
+
+    <menuitem
+        id="menu_bom_dashboard"
+        name="Dashboard BOM"
+        parent="mrp.menu_mrp_root"
+        action="action_bom_dashboard_client"
+        groups="mrp.group_mrp_user"
+        sequence="6"/>
+</odoo>
