@@ -74,18 +74,21 @@ bom_dashboard/
 
 - Columnas por nivel (0, 1, 2…) con `overflow-x: auto`
 - Encabezado de columna: badge de color por nivel con etiqueta "Nivel N — descripción"
+- Dentro de cada columna, los nodos se agrupan visualmente por padre: cada grupo tiene un separador con el nombre del producto padre, para distinguir de qué rama provienen cuando hay múltiples padres en el nivel anterior
 - **BomProductCard** para productos manufacturados: borde sólido, referencia interna, cantidad, badge "tiene BOM →" si tiene sub-BOM propio
-- **BomProductCard** para productos comprados: borde punteado, fondo gris, badge "comprado" — visualmente diferenciados
-- Los productos comprados no aparecen en la vista MOs (no generan MOs)
+- **BomProductCard** para productos comprados: borde punteado, fondo gris, con un **checkmark (✓)** indicando "comprado / sin MO" — aparecen en ambas vistas para completar el árbol visual
+- Máximo **5 niveles** visibles por defecto. Si el BOM tiene más niveles, se muestra un botón **"Ver más niveles (+N)"** al final del scroll horizontal que expande todos los subniveles restantes de una vez
 
 ### Tab 2 — MOs Activas
 
-- Misma estructura de columnas por nivel
+- Misma estructura de columnas por nivel, con agrupación por padre igual que Tab 1
 - **MoBomCard** con: avatar + iniciales del responsable, referencia MO, producto, qty_producing/product_qty, badge de estado
+- **BomProductCard** (comprados, con checkmark ✓) también aparece en esta vista para mantener el árbol completo y poder ver qué posición ocupa cada componente comprado en la cadena
 - Badge de estado y color de header de card igual al `MoCard` del `mrp_dashboard` existente
-- Columna vacía → texto "Sin MOs activas" en gris
+- Columna vacía de MOs → texto "Sin MOs activas" en gris (los comprados con ✓ no cuentan como vacío)
 - Auto-refresh cada 30 segundos (igual que `mrp_dashboard`)
 - Indicador "↻ 30s" en el header cuando está actualizando
+- Botón **"Ver más niveles (+N)"** aplica igualmente en esta vista
 
 ### Colores por nivel (ambos tabs)
 
@@ -110,6 +113,7 @@ bom_dashboard/
   activeTab: 'structure',// 'structure' | 'mos'
   bomTree: null,         // árbol de BOM [{level, product, children, mos}]
   stateFilter: false,    // filtro de estado de MO (solo tab MOs)
+  showAllLevels: false,  // false = máx 5 niveles, true = todos
   loading: false,
 }
 ```
@@ -117,10 +121,11 @@ bom_dashboard/
 **Ciclo de vida:** `onMounted` → carga lista de BOMs → selecciona el primero automáticamente → inicia timer de 30s para refresh de MOs.
 
 **Métodos:**
-- `selectBom(id)` — actualiza `selectedBomId`, llama `loadData()`
+- `selectBom(id)` — actualiza `selectedBomId`, resetea `showAllLevels` a false, llama `loadData()`
 - `setTab(tab)` — cambia `activeTab`
 - `loadData()` — POST al controller con `bom_id` y `state_filter`
-- `get levelColumns()` — transforma `bomTree` en array de columnas por nivel
+- `get levelColumns()` — transforma `bomTree` en array de columnas por nivel, agrupadas por padre dentro de cada columna. Si `showAllLevels` es false, corta en nivel 4 (índice 0–4 = 5 columnas máx)
+- `get hiddenLevelsCount()` — cantidad de niveles ocultos (para el botón "Ver más +N")
 
 ### `BomSidebar`
 
@@ -140,14 +145,15 @@ Renderiza columnas con `BomLevelColumn` + `MoBomCard`
 
 ### `BomLevelColumn`
 
-Props: `level` (número), `items` (array), `emptyText`
-Maneja el encabezado coloreado por nivel y el estado vacío
+Props: `level` (número), `groups` (array de `{parentName, items}`), `emptyText`
+- Renderiza cada grupo con un separador de texto con el nombre del padre cuando hay más de un grupo en la columna
+- Maneja el encabezado coloreado por nivel y el estado vacío
 
 ### `BomProductCard`
 
 Props: `product` — `{id, name, ref, qty, uom, has_bom, route_type}`
-- `route_type: 'manufacture'` → card normal con borde sólido
-- `route_type: 'buy'` → card con borde punteado, fondo gris
+- `route_type: 'manufacture'` → card normal con borde sólido, badge "tiene BOM →" si `has_bom`
+- `route_type: 'buy'` → card con borde punteado, fondo gris, checkmark **✓** en lugar de badge de estado. Aparece en ambos tabs.
 
 ### `MoBomCard`
 
@@ -250,5 +256,5 @@ odoo-dashboards/
 - Notificaciones push / websocket
 - Exportación del árbol a PDF/Excel
 - Vista de componentes comprados con stock disponible
-- Profundidad de BOM mayor a 5 niveles (puede configurarse como constante)
+- Profundidad de BOM mayor a 5 niveles visible por defecto (el botón "Ver más" los expande todos)
 - Filtro por equipo MRP en el bom_dashboard (está en mrp_dashboard)
