@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_stats_header.MrpProductionListController"
+       t-inherit="web.ListController"
+       t-inherit-mode="extension">
+        <xpath expr="//t[@t-component='props.Renderer']" position="before">
+            <MrpStatsBanner
+                counts="statsState.counts"
+                activeState="statsState.activeState"
+                scope="statsState.scope"
+                onCardClick.bind="toggleStateFilter"
+                onScopeChange.bind="setScope"
+            />
+        </xpath>
+    </t>
+</templates>
