@@ -106,6 +106,8 @@ export class BomDashboard extends Component {
         });
     }
 
+    // Dev-only: Tailwind CDN for rapid iteration. For production, replace with
+    // a compiled CSS asset shipped in web.assets_backend instead of this script.
     _injectTailwind() {
         if (!document.querySelector('#bom-tw-cdn')) {
             const s = document.createElement('script');
