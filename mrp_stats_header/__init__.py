@@ -4,7 +4,9 @@ from . import controllers
 
 def post_init_hook(env):
     """Find the base mrp.production list view and add js_class to it."""
-    base_view = env['ir.ui.view'].search([
+    View = env['ir.ui.view'].sudo()
+
+    base_view = View.search([
         ('model', '=', 'mrp.production'),
         ('type', '=', 'list'),
         ('inherit_id', '=', False),
@@ -14,14 +16,13 @@ def post_init_hook(env):
         return
 
     # Avoid creating duplicate if already installed
-    existing = env['ir.ui.view'].search([
+    if View.search([
         ('name', '=', 'mrp.production.list.stats.jsclass'),
         ('model', '=', 'mrp.production'),
-    ])
-    if existing:
+    ]):
         return
 
-    env['ir.ui.view'].sudo().create({
+    View.create({
         'name': 'mrp.production.list.stats.jsclass',
         'model': 'mrp.production',
         'type': 'list',
