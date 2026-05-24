@@ -1,11 +1,25 @@
 /** @odoo-module */
 import { Component, useState, onMounted, onWillUnmount, xml } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { BomSidebar } from "./BomSidebar";
 import { BomStructureView } from "./BomStructureView";
 import { BomMoView } from "./BomMoView";
 
+// Ensure Tailwind is available early (before first render)
+if (!document.querySelector('#bom-tw-cdn')) {
+    const s = document.createElement('script');
+    s.id = 'bom-tw-cdn';
+    s.src = 'https://cdn.tailwindcss.com';
+    document.head.appendChild(s);
+}
+
 export class BomDashboard extends Component {
+    static props = {
+        action: { type: Object, optional: true },
+        actionId: { type: Number, optional: true },
+        updateActionState: { type: Function, optional: true },
+        className: { type: String, optional: true },
+    };
     static template = xml`
         <div class="flex bg-gray-50 font-sans overflow-hidden" style="height:100vh;">
 
@@ -84,7 +98,6 @@ export class BomDashboard extends Component {
     static components = { BomSidebar, BomStructureView, BomMoView };
 
     setup() {
-        this.rpc = useService("rpc");
         this.state = useState({
             boms: [],
             selectedBomId: false,
@@ -97,7 +110,6 @@ export class BomDashboard extends Component {
         this._timer = null;
 
         onMounted(async () => {
-            this._injectTailwind();
             await this._loadBoms();
         });
 
@@ -106,19 +118,8 @@ export class BomDashboard extends Component {
         });
     }
 
-    // Dev-only: Tailwind CDN for rapid iteration. For production, replace with
-    // a compiled CSS asset shipped in web.assets_backend instead of this script.
-    _injectTailwind() {
-        if (!document.querySelector('#bom-tw-cdn')) {
-            const s = document.createElement('script');
-            s.id = 'bom-tw-cdn';
-            s.src = 'https://cdn.tailwindcss.com';
-            document.head.appendChild(s);
-        }
-    }
-
     async _loadBoms() {
-        const boms = await this.rpc('/bom/dashboard/boms', {});
+        const boms = await rpc('/bom/dashboard/boms', {});
         this.state.boms = boms || [];
         if (this.state.boms.length && !this.state.selectedBomId) {
             await this.selectBom(this.state.boms[0].id);
@@ -129,7 +130,7 @@ export class BomDashboard extends Component {
         if (!this.state.selectedBomId) return;
         this.state.loading = true;
         try {
-            const result = await this.rpc('/bom/dashboard/data', {
+            const result = await rpc('/bom/dashboard/data', {
                 bom_id: this.state.selectedBomId,
                 state_filter: this.state.stateFilter || false,
             });

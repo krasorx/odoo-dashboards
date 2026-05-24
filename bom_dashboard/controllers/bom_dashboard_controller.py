@@ -97,7 +97,7 @@ class BomDashboardController(http.Controller):
             'id': prod.id,
             'name': prod.name,
             'product_name': prod.product_id.display_name,
-            'lot': prod.lot_producing_id.name if prod.lot_producing_id else '',
+            'lot': getattr(getattr(prod, 'lot_producing_id', None), 'name', '') or '',
             'qty_producing': prod.qty_producing,
             'product_qty': prod.product_qty,
             'state': prod.state,

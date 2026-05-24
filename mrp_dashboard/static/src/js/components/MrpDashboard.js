@@ -1,7 +1,15 @@
 /** @odoo-module */
 import { Component, useState, onMounted, onWillUnmount, xml } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { WeekColumn } from "./WeekColumn";
+
+// Ensure Tailwind is available early (before first render)
+if (!document.querySelector('#mrp-tw-cdn')) {
+    const s = document.createElement('script');
+    s.id = 'mrp-tw-cdn';
+    s.src = 'https://cdn.tailwindcss.com';
+    document.head.appendChild(s);
+}
 
 function getMondayOfCurrentWeek() {
     const today = new Date();
@@ -21,6 +29,12 @@ function formatDate(date) {
 }
 
 export class MrpDashboard extends Component {
+    static props = {
+        action: { type: Object, optional: true },
+        actionId: { type: Number, optional: true },
+        updateActionState: { type: Function, optional: true },
+        className: { type: String, optional: true },
+    };
     static template = xml`
         <div class="min-h-screen bg-gray-50 font-sans">
 
@@ -78,7 +92,6 @@ export class MrpDashboard extends Component {
     static components = { WeekColumn };
 
     setup() {
-        this.rpc = useService("rpc");
         this.state = useState({
             weekStart:      getMondayOfCurrentWeek(),
             selectedTeamId: false,
@@ -89,7 +102,6 @@ export class MrpDashboard extends Component {
         this._refreshTimer = null;
 
         onMounted(() => {
-            this._injectTailwind();
             this.loadData();
             this._refreshTimer = setInterval(() => this.loadData(), 30_000);
         });
@@ -101,19 +113,10 @@ export class MrpDashboard extends Component {
         });
     }
 
-    _injectTailwind() {
-        if (!document.querySelector('#mrp-tw-cdn')) {
-            const script = document.createElement('script');
-            script.id = 'mrp-tw-cdn';
-            script.src = 'https://cdn.tailwindcss.com';
-            document.head.appendChild(script);
-        }
-    }
-
     async loadData() {
         this.state.loading = true;
         try {
-            const result = await this.rpc('/mrp/dashboard/weekly_orders', {
+            const result = await rpc('/mrp/dashboard/weekly_orders', {
                 week_start: formatDate(this.state.weekStart),
                 team_id:    this.state.selectedTeamId || false,
             });
