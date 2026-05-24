@@ -18,10 +18,8 @@ export class MrpStatsCard extends Component {
             t-on-click="() => props.onClick(props.state)"
             type="button"
         >
-            <span t-att-class="'text-2xl font-extrabold leading-none ' + colors.text"
-                  t-esc="props.count"/>
-            <span class="text-xs font-semibold uppercase tracking-wide text-gray-400 mt-0.5"
-                  t-esc="props.label"/>
+            <span class="o_stat_value" t-esc="props.count"/>
+            <span class="o_stat_text" t-esc="props.label"/>
         </button>
     `;
 
@@ -38,19 +36,9 @@ export class MrpStatsCard extends Component {
     }
 
     get cardClass() {
-        const c = this.colors;
-        if (this.props.active) {
-            return [
-                'flex flex-col items-center justify-center px-4 py-3 rounded-xl',
-                'border-2 transition-all duration-150 cursor-pointer select-none min-w-[90px]',
-                c.activeBg, c.border, 'shadow-sm',
-            ].join(' ');
-        }
-        return [
-            'flex flex-col items-center justify-center px-4 py-3 rounded-xl',
-            'border border-gray-100 bg-white transition-all duration-150',
-            'cursor-pointer select-none min-w-[90px]',
-            'hover:border-gray-200 hover:shadow-sm',
-        ].join(' ');
+        const base = 'o_kanban_card o_kanban_record d-flex flex-column align-items-center justify-content-center p-3 border rounded me-2';
+        return this.props.active
+            ? `${base} bg-light border-primary shadow-sm`
+            : `${base} bg-white`;
     }
 }

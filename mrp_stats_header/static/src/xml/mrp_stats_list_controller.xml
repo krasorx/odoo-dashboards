@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="mrp_stats_header.MrpProductionListController"
-       t-inherit="web.ListController"
-       t-inherit-mode="extension">
+       t-inherit="web.ListView"
+       t-inherit-mode="primary">
         <xpath expr="//t[@t-component='props.Renderer']" position="before">
             <MrpStatsBanner
                 counts="statsState.counts"
