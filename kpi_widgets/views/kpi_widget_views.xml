@@ -68,7 +68,7 @@
                 <field name="name"/>
                 <field name="model_id"/>
                 <filter name="active" string="Active" domain="[('active','=',True)]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter name="g_model" string="Model" context="{'group_by':'model_id'}"/>
                 </group>
             </search>
