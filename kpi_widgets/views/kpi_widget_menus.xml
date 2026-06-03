@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_kpi_widget_root"
+              name="KPI Widgets"
+              parent="base.menu_custom"
+              action="kpi_widget_action"
+              groups="base.group_system"
+              sequence="50"/>
+</odoo>
