@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'KPI Widgets',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'category': 'Productivity',
-    'summary': 'Reusable configurable KPI cards in the header of list and kanban views',
+    'summary': 'No-code configurable KPI cards in the header of list and kanban views',
     'depends': ['web'],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/kpi_widget_views.xml',
+        'views/kpi_widget_menus.xml',
+    ],
     'assets': {
         'web.assets_backend': [
             'kpi_widgets/static/src/kpi_card/kpi_card.js',
             'kpi_widgets/static/src/kpi_band/kpi_band.js',
             'kpi_widgets/static/src/kpi_hook.js',
-            'kpi_widgets/static/src/views/kpi_views.js',
-            'kpi_widgets/static/src/views/kpi_controllers.xml',
+            'kpi_widgets/static/src/kpi_patch.js',
+            'kpi_widgets/static/src/kpi_patch.xml',
         ],
     },
     'installable': True,
