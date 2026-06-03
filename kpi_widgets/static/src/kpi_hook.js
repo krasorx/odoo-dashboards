@@ -1,29 +1,32 @@
 /** @odoo-module */
 import { useState, useComponent, onWillStart } from "@odoo/owl";
 import { useService, useBus } from "@web/core/utils/hooks";
+import { session } from "@web/session";
 
 /**
- * Adds KPI band state + behavior to a list/kanban controller.
- * Reads the model method name from this.props.kpiMethod (set by the view factory).
- * Returns { state, toggleFilter } for use in the controller template.
+ * KPI band behavior for a list/kanban controller. Config-gated: does nothing
+ * (no RPC) unless the model is in session.kpi_models. Returns { enabled, state,
+ * toggleFilter }. Hooks are always registered (OWL rule); load() early-returns
+ * when disabled.
  */
-export function useKpis() {
+export function useKpis(viewType) {
     const component = useComponent();
     const orm = useService("orm");
     const env = component.env;
     const resModel = component.props.resModel;
-    const kpiMethod = component.props.kpiMethod;
+    const enabled = Array.isArray(session.kpi_models)
+        && session.kpi_models.includes(resModel);
 
     const state = useState({ kpis: [], loading: false, activeKpiId: false });
 
     async function load() {
-        if (!kpiMethod) {
+        if (!enabled) {
             return;
         }
         state.loading = true;
         try {
             const domain = env.searchModel.domain || [];
-            state.kpis = await orm.call(resModel, kpiMethod, [domain]);
+            state.kpis = await orm.call(resModel, "get_view_kpis", [domain, viewType]);
         } catch (e) {
             console.error("[kpi_widgets] Error loading KPIs:", e);
             state.kpis = [];
@@ -33,10 +36,7 @@ export function useKpis() {
     }
 
     onWillStart(load);
-    useBus(env.searchModel, "UPDATE", () => {
-        // Refetch KPIs whenever the search domain/filters change.
-        load();
-    });
+    useBus(env.searchModel, "UPDATE", () => load());
 
     async function toggleFilter(kpi) {
         if (!kpi.domain) {
@@ -49,5 +49,11 @@ export function useKpis() {
         await component.model.load({ domain: [...base, ...extra] });
     }
 
-    return { state, toggleFilter };
+    return {
+        get enabled() {
+            return enabled;
+        },
+        state,
+        toggleFilter,
+    };
 }
