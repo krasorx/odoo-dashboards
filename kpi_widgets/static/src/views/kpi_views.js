@@ -5,14 +5,21 @@ import { kanbanView } from "@web/views/kanban/kanban_view";
 import { KpiBand } from "../kpi_band/kpi_band";
 import { useKpis } from "../kpi_hook";
 
+// Default model method called for KPI data. Override per action via
+// context="{'kpi_method': 'my_method'}" (the view RNG schema forbids custom
+// attributes on the <list>/<kanban> root, so config travels in the context).
+const DEFAULT_KPI_METHOD = "get_view_kpis";
+
 /**
- * Wraps a view's props fn so the root `kpi_method` arch attribute is exposed
- * as a `kpiMethod` controller prop. genericProps.arch is already an Element.
+ * Wraps a view's props fn so the KPI model method name is exposed as a
+ * `kpiMethod` controller prop, read from the action context with a convention
+ * fallback.
  */
 function withKpiProps(baseView) {
     return (genericProps, descr, config) => {
         const props = baseView.props(genericProps, descr, config);
-        props.kpiMethod = genericProps.arch.getAttribute("kpi_method") || false;
+        props.kpiMethod = (genericProps.context && genericProps.context.kpi_method)
+            || DEFAULT_KPI_METHOD;
         return props;
     };
 }

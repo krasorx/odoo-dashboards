@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Add KPI band to the picking list (Deliveries / Receipts). -->
+    <record id="vpicktree_kpi" model="ir.ui.view">
+        <field name="name">stock.picking.list.kpi</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="js_class">kpi_stock_list</attribute>
+            </list>
+        </field>
+    </record>
+
+    <!-- Add KPI band to the picking kanban. -->
+    <record id="stock_picking_kanban_kpi" model="ir.ui.view">
+        <field name="name">stock.picking.kanban.kpi</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.stock_picking_kanban"/>
+        <field name="arch" type="xml">
+            <kanban position="attributes">
+                <attribute name="js_class">kpi_kanban</attribute>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>
