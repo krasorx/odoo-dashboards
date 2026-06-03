@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="kpi_picking_by_state" model="kpi.widget">
+        <field name="name">Pickings by status</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="card_type">group_by</field>
+        <field name="groupby_field_id" ref="stock.field_stock_picking__state"/>
+        <field name="aggregate">count</field>
+        <field name="value_format">integer</field>
+        <field name="clickable" eval="True"/>
+    </record>
+</odoo>
