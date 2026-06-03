@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models
+from odoo import api, models
 
 # state -> card color; list order defines display order.
 KPI_STATES = [
@@ -14,8 +14,13 @@ KPI_STATES = [
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    @api.model
     def get_view_kpis(self, domain):
         """Return KPI card defs (count by state) aggregated over `domain`.
+
+        Must be ``@api.model``: it is invoked from the client via ``orm.call``,
+        and call_kw only passes the first positional arg straight through (rather
+        than treating it as record ids) for model-level methods.
 
         `domain` is the view's current search domain, which already carries the
         picking-type filter (incoming for Receipts, outgoing for Deliveries),
