@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="kpi_widgets.KpiListController"
+       t-inherit="web.ListView"
+       t-inherit-mode="primary">
+        <xpath expr="//t[@t-component='props.Renderer']" position="before">
+            <KpiBand
+                kpis="kpi.state.kpis"
+                loading="kpi.state.loading"
+                activeKpiId="kpi.state.activeKpiId"
+                onCardClick="kpi.toggleFilter"
+            />
+        </xpath>
+    </t>
+
+    <t t-name="kpi_widgets.KpiKanbanController"
+       t-inherit="web.KanbanView"
+       t-inherit-mode="primary">
+        <xpath expr="//t[@t-component='props.Renderer']" position="before">
+            <KpiBand
+                kpis="kpi.state.kpis"
+                loading="kpi.state.loading"
+                activeKpiId="kpi.state.activeKpiId"
+                onCardClick="kpi.toggleFilter"
+            />
+        </xpath>
+    </t>
+
+</templates>
