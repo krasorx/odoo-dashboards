@@ -6,3 +6,4 @@ from . import test_permissions
 from . import test_share_token
 from . import test_project
 from . import test_access_request
+from . import test_controllers
