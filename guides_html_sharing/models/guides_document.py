@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import secrets
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
@@ -29,6 +31,10 @@ class GuidesDocument(models.Model):
     version_count = fields.Integer(compute='_compute_version_count')
     content_html = fields.Text(related='active_version_id.content_html',
                                string='Current HTML', readonly=True)
+
+    share_token = fields.Char(copy=False, index=True, readonly=True)
+    share_active = fields.Boolean(string='Public Link Enabled', default=False)
+    share_expiry = fields.Datetime(string='Link Expiry')
 
     @api.depends('version_ids')
     def _compute_version_count(self):
@@ -84,3 +90,33 @@ class GuidesDocument(models.Model):
         return self.action_add_version(
             version.content_html, source=version.source,
             changelog=f"Restored from v{version.version_number}")
+
+    def action_enable_share(self):
+        self.ensure_one()
+        if not self.share_token:
+            self.share_token = secrets.token_urlsafe(24)
+        self.share_active = True
+        return f"{self.get_base_url()}/guides/public/{self.share_token}"
+
+    def action_regenerate_token(self):
+        self.ensure_one()
+        self.share_token = secrets.token_urlsafe(24)
+        return self.action_enable_share()
+
+    def action_revoke_share(self):
+        self.share_active = False
+
+    def _is_share_valid(self):
+        self.ensure_one()
+        if not self.share_active or not self.share_token:
+            return False
+        if self.share_expiry and self.share_expiry < fields.Datetime.now():
+            return False
+        return True
+
+    @api.model
+    def _get_valid_shared_document(self, token):
+        if not token:
+            return self.browse()
+        doc = self.sudo().search([('share_token', '=', token)], limit=1)
+        return doc if (doc and doc._is_share_valid()) else self.browse()

@@ -3,3 +3,4 @@ from . import test_tag
 from . import test_folder
 from . import test_document_version
 from . import test_permissions
+from . import test_share_token
