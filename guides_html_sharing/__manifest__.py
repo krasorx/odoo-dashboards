@@ -7,7 +7,7 @@
     'author': 'krasorx',
     'depends': ['web', 'mail', 'project', 'portal'],
     'data': [
-        # files added incrementally per task
+        'security/ir.model.access.csv',
     ],
     'assets': {
         'web.assets_backend': [
