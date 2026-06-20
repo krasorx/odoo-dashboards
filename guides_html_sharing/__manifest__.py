@@ -10,6 +10,7 @@
         'security/guides_security.xml',
         'security/ir.model.access.csv',
         'data/guides_data.xml',
+        'wizard/guides_version_wizard_views.xml',
         'views/guides_tag_views.xml',
         'views/guides_folder_views.xml',
         'views/guides_document_views.xml',

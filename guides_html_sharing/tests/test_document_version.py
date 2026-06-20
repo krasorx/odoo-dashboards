@@ -47,3 +47,18 @@ class TestDocumentVersion(TransactionCase):
         doc = self.env['guides.document'].new({'task_id': task.id})
         doc._onchange_task_id()
         self.assertEqual(doc.project_id, project)
+
+    def test_wizard_upload_creates_version(self):
+        import base64
+        folder = self.env['guides.folder'].create({'name': 'WF'})
+        doc = self.env['guides.document'].create({
+            'name': 'WizDoc', 'folder_id': folder.id,
+            'version_ids': [(0, 0, {'content_html': '<p>v1</p>'})]})
+        wiz = self.env['guides.version.wizard'].create({
+            'document_id': doc.id, 'mode': 'upload',
+            'upload_file': base64.b64encode(b'<h1>uploaded</h1>'),
+            'upload_filename': 'guide.html'})
+        wiz.action_save()
+        self.assertEqual(doc.content_html, '<h1>uploaded</h1>')
+        self.assertEqual(doc.active_version_id.source, 'upload')
+        self.assertEqual(doc.active_version_id.original_filename, 'guide.html')

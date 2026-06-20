@@ -16,3 +16,4 @@ access_guides_version_user,guides.document.version user,model_guides_document_ve
 access_guides_version_admin,guides.document.version admin,model_guides_document_version,guides_html_sharing.group_guides_admin,1,1,1,1
 access_guides_access_request_user,guides.access.request user,model_guides_access_request,guides_html_sharing.group_guides_user,1,1,1,0
 access_guides_access_request_admin,guides.access.request admin,model_guides_access_request,guides_html_sharing.group_guides_admin,1,1,1,1
+access_guides_version_wizard_user,guides.version.wizard user,model_guides_version_wizard,guides_html_sharing.group_guides_user,1,1,1,1

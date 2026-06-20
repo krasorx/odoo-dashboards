@@ -9,6 +9,9 @@
                     <button name="action_open_preview" type="object"
                             string="Open Preview" class="btn-primary"
                             invisible="not active_version_id"/>
+                    <button name="%(action_guides_version_wizard)d" type="action"
+                            string="New Version" class="btn-secondary"
+                            context="{'default_document_id': id}"/>
                     <button name="action_enable_share" type="object"
                             string="Enable Public Link"
                             invisible="share_active"/>
