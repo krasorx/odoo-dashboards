@@ -13,7 +13,8 @@
 - Odoo version: `19.0`; manifest version string `19.0.1.0.0`.
 - License: `LGPL-3`.
 - Addon path: `addons/odoo-dashboards/guides_html_sharing/`.
-- Container service: `odoo` (container `odoo_ee_19`); database: `postgres`.
+- Container service: `odoo` (container `odoo_ee_19`); database: `TOKINOSORA`.
+- DB connection flags required on every `odoo` exec (entrypoint injects them for the running server, not for ad-hoc exec): `--db_host=postgres --db_port=5432 --db_user=odoo --db_password=asdjkl123`.
 - HTML is a single self-contained file (inline/CDN CSS+JS); no external asset bundles.
 - Backend iframe uses `sandbox="allow-scripts"` (no `allow-same-origin`); HTML responses carry a restrictive `Content-Security-Policy`.
 - Three security groups, implied chain: `group_guides_viewer` ⊂ `group_guides_user` ⊂ `group_guides_admin`.
@@ -25,10 +26,17 @@
 From `/home/krasorx/server/odoo-19-ee`, after the module exists, install once with `-i` then use `-u` for reruns:
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -i guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
+  --db_host=postgres --db_port=5432 --db_user=odoo --db_password=asdjkl123 \
   --test-enable --test-tags /guides_html_sharing \
-  --stop-after-init --no-http --log-level=test 2>&1 | tail -50
+  --stop-after-init --http-port=8090 --gevent-port=8091 \
+  --log-level=test 2>&1 | tail -50
 ```
+
+The running server already holds port 8069, so ad-hoc test runs MUST use a spare
+`--http-port`/`--gevent-port` (e.g. 8090/8091) instead of `--no-http`, and pass
+the DB connection flags (the entrypoint injects them only for the live server).
+Use `-i` on the first install, `-u` thereafter.
 
 Pass criterion: output ends with `0 failed, 0 error(s)` (and no traceback).
 
@@ -156,7 +164,7 @@ addons_path = /mnt/extra-addons/ntsystemwork/nt-addons, /mnt/extra-addons/ee/ent
 ```bash
 cd /home/krasorx/server/odoo-19-ee
 docker compose restart odoo
-docker compose exec -T odoo odoo -d postgres -i guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -i guides_html_sharing \
   --stop-after-init --no-http --log-level=info 2>&1 | tail -20
 ```
 
@@ -222,7 +230,7 @@ class TestGuidesTag(TransactionCase):
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -i guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -i guides_html_sharing \
   --test-enable --test-tags /guides_html_sharing --stop-after-init --no-http 2>&1 | tail -30
 ```
 
@@ -273,7 +281,7 @@ access_guides_tag_user,guides.tag user,model_guides_tag,base.group_user,1,1,1,1
 - [ ] **Step 7: Run tests to verify they pass**
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -u guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
   --test-enable --test-tags /guides_html_sharing --stop-after-init --no-http 2>&1 | tail -30
 ```
 
@@ -357,7 +365,7 @@ class TestGuidesFolder(TransactionCase):
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -u guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
   --test-enable --test-tags /guides_html_sharing --stop-after-init --no-http 2>&1 | tail -30
 ```
 
@@ -1308,7 +1316,7 @@ class TestControllers(HttpCase):
 - [ ] **Step 2: Run test to verify it fails** (standard `-u`, but drop `--no-http` so HttpCase works):
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -u guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
   --test-enable --test-tags /guides_html_sharing --stop-after-init 2>&1 | tail -40
 ```
 
@@ -1618,7 +1626,7 @@ git add guides_html_sharing && git commit -m "feat(guides): backend render + tok
 
 > If `project.view_task_form2` is not the correct external id on this Odoo 19
 > build, find the task form id with:
-> `docker compose exec -T odoo odoo shell -d postgres` →
+> `docker compose exec -T odoo odoo shell -d TOKINOSORA` →
 > `self.env.ref('project.view_task_form2')`, or grep enterprise/community
 > `project` views. Adjust the `inherit_id`.
 
@@ -1664,7 +1672,7 @@ git add guides_html_sharing && git commit -m "feat(guides): backend render + tok
 - [ ] **Step 7: Install + run full suite** (no `--no-http`):
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -u guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
   --test-enable --test-tags /guides_html_sharing --stop-after-init 2>&1 | tail -40
 ```
 
@@ -1841,7 +1849,7 @@ And restore `web_icon="guides_html_sharing,static/description/icon.png"` on
 - [ ] **Step 6: Update + manual smoke**
 
 ```bash
-docker compose exec -T odoo odoo -d postgres -u guides_html_sharing \
+docker compose exec -T odoo odoo -d TOKINOSORA -u guides_html_sharing \
   --stop-after-init 2>&1 | tail -20
 ```
 
