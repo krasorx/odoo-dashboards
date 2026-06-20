@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_guides_tag_user,guides.tag user,model_guides_tag,base.group_user,1,1,1,1
 access_guides_folder_user,guides.folder user,model_guides_folder,base.group_user,1,1,1,1
 access_guides_folder_member_user,guides.folder.member user,model_guides_folder_member,base.group_user,1,1,1,1
+access_guides_document_user,guides.document user,model_guides_document,base.group_user,1,1,1,1
+access_guides_document_version_user,guides.document.version user,model_guides_document_version,base.group_user,1,1,1,1

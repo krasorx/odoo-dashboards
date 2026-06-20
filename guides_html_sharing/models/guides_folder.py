@@ -13,7 +13,7 @@ class GuidesFolder(models.Model):
     name = fields.Char(required=True)
     parent_id = fields.Many2one('guides.folder', string='Parent Folder',
                                 ondelete='cascade', index=True)
-    parent_path = fields.Char(index=True, unaccent=False)
+    parent_path = fields.Char(index=True)
     complete_name = fields.Char(compute='_compute_complete_name',
                                 store=True, recursive=True)
     sequence = fields.Integer(default=10)
@@ -21,7 +21,9 @@ class GuidesFolder(models.Model):
         string='Inherit Parent Access', default=True)
     member_ids = fields.One2many('guides.folder.member', 'folder_id',
                                  string='Members')
-    # document_ids / document_count are added in Task 4 (needs guides.document)
+    document_ids = fields.One2many('guides.document', 'folder_id',
+                                   string='Documents')
+    document_count = fields.Integer(compute='_compute_document_count')
 
     @api.depends('name', 'parent_id.complete_name')
     def _compute_complete_name(self):
@@ -30,6 +32,10 @@ class GuidesFolder(models.Model):
                 folder.complete_name = f"{folder.parent_id.complete_name} / {folder.name}"
             else:
                 folder.complete_name = folder.name
+
+    def _compute_document_count(self):
+        for folder in self:
+            folder.document_count = len(folder.document_ids)
 
     def _get_effective_members(self):
         """Return {user_id(int): 'reader'|'contributor'} for this folder,
