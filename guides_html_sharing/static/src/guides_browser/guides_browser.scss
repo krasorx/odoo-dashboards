@@ -1,0 +1,20 @@
+.o_guides_browser {
+    height: 100%;
+    .o_guides_sidebar {
+        width: 280px;
+        border-right: 1px solid #dee2e6;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+    .o_guides_doc {
+        cursor: pointer;
+        &:hover { background: #e9ecef; }
+        &.o_active { background: #cfe2ff; font-weight: 600; }
+    }
+    .o_guides_viewer { display: flex; flex-direction: column; }
+    .o_guides_iframe {
+        flex-grow: 1;
+        width: 100%;
+        border: 0;
+    }
+}

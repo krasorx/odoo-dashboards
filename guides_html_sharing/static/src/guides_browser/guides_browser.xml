@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="guides_html_sharing.GuidesBrowser">
+        <div class="o_guides_browser d-flex">
+            <div class="o_guides_sidebar">
+                <h5 class="p-2">Guides</h5>
+                <t t-foreach="state.folders" t-as="folder" t-key="folder.id">
+                    <div class="o_guides_folder fw-bold px-2 pt-2"
+                         t-esc="folder.complete_name"/>
+                    <t t-foreach="docsForFolder(folder.id)" t-as="doc"
+                       t-key="doc.id">
+                        <div class="o_guides_doc px-3 py-1"
+                             t-att-class="{ 'o_active': state.selectedDoc and state.selectedDoc.id === doc.id }"
+                             t-on-click="() => this.openDoc(doc)"
+                             t-esc="doc.name"/>
+                    </t>
+                </t>
+            </div>
+            <div class="o_guides_viewer flex-grow-1">
+                <div t-if="state.selectedDoc" class="o_guides_toolbar p-2">
+                    <strong t-esc="state.selectedDoc.name"/>
+                    <button class="btn btn-sm btn-secondary float-end"
+                            t-on-click="() => this.openFullscreen()">
+                        Open Fullscreen
+                    </button>
+                </div>
+                <iframe t-if="state.iframeUrl" t-att-src="state.iframeUrl"
+                        sandbox="allow-scripts" class="o_guides_iframe"/>
+                <div t-else="" class="text-muted p-4">
+                    Select a document to preview.
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

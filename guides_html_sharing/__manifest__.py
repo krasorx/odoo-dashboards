@@ -18,7 +18,9 @@
     ],
     'assets': {
         'web.assets_backend': [
-            # OWL browser assets added in Task 11
+            'guides_html_sharing/static/src/guides_browser/guides_browser.scss',
+            'guides_html_sharing/static/src/guides_browser/guides_browser.js',
+            'guides_html_sharing/static/src/guides_browser/guides_browser.xml',
         ],
     },
     'installable': True,

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_guides_root" name="Guides" sequence="50"/>
+    <record id="action_guides_browser" model="ir.actions.client">
+        <field name="name">Guides Browser</field>
+        <field name="tag">guides_browser</field>
+    </record>
+
+    <menuitem id="menu_guides_root" name="Guides" sequence="50"
+              web_icon="guides_html_sharing,static/description/icon.png"/>
+    <menuitem id="menu_guides_browser" name="Browser"
+              parent="menu_guides_root" action="action_guides_browser"
+              sequence="5"/>
     <menuitem id="menu_guides_documents" name="Documents"
               parent="menu_guides_root" action="action_guides_document"
               sequence="10"/>
