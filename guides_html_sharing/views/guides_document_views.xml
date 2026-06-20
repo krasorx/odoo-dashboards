@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_guides_document_form" model="ir.ui.view">
+        <field name="name">guides.document.form</field>
+        <field name="model">guides.document</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_preview" type="object"
+                            string="Open Preview" class="btn-primary"
+                            invisible="not active_version_id"/>
+                    <button name="action_enable_share" type="object"
+                            string="Enable Public Link"
+                            invisible="share_active"/>
+                    <button name="action_revoke_share" type="object"
+                            string="Revoke Link"
+                            invisible="not share_active"/>
+                    <button name="action_request_edit_access" type="object"
+                            string="Request Edit Access"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-history"
+                                type="object" name="action_open_preview">
+                            <field name="version_count" widget="statinfo"
+                                   string="Versions"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="folder_id"/>
+                            <field name="owner_id"/>
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color'}"/>
+                        </group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="task_id"/>
+                            <field name="editor_ids" widget="many2many_tags"/>
+                            <field name="active_version_id"/>
+                            <field name="share_active"/>
+                            <field name="share_expiry"
+                                   invisible="not share_active"/>
+                            <field name="share_token" readonly="1"
+                                   invisible="not share_active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Versions">
+                            <field name="version_ids">
+                                <list>
+                                    <field name="version_number"/>
+                                    <field name="source"/>
+                                    <field name="original_filename"/>
+                                    <field name="create_uid"/>
+                                    <field name="create_date"/>
+                                    <field name="changelog"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_guides_document_kanban" model="ir.ui.view">
+        <field name="name">guides.document.kanban</field>
+        <field name="model">guides.document</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="folder_id"/>
+                <field name="tag_ids"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click p-2">
+                            <strong><field name="name"/></strong>
+                            <div class="text-muted"><field name="folder_id"/></div>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_guides_document_list" model="ir.ui.view">
+        <field name="name">guides.document.list</field>
+        <field name="model">guides.document</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="folder_id"/>
+                <field name="owner_id"/>
+                <field name="version_count"/>
+                <field name="share_active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_guides_document" model="ir.actions.act_window">
+        <field name="name">Documents</field>
+        <field name="res_model">guides.document</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

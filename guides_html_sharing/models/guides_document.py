@@ -91,6 +91,14 @@ class GuidesDocument(models.Model):
             version.content_html, source=version.source,
             changelog=f"Restored from v{version.version_number}")
 
+    def action_open_preview(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f"/guides/render/{self.id}",
+            'target': 'new',
+        }
+
     def action_enable_share(self):
         self.ensure_one()
         if not self.share_token:

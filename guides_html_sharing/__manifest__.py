@@ -10,6 +10,11 @@
         'security/guides_security.xml',
         'security/ir.model.access.csv',
         'data/guides_data.xml',
+        'views/guides_tag_views.xml',
+        'views/guides_folder_views.xml',
+        'views/guides_document_views.xml',
+        'views/project_task_views.xml',
+        'views/guides_menus.xml',
     ],
     'assets': {
         'web.assets_backend': [

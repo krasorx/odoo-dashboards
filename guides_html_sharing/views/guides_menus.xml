@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_guides_root" name="Guides" sequence="50"/>
+    <menuitem id="menu_guides_documents" name="Documents"
+              parent="menu_guides_root" action="action_guides_document"
+              sequence="10"/>
+    <menuitem id="menu_guides_folders" name="Folders"
+              parent="menu_guides_root" action="action_guides_folder"
+              sequence="20" groups="guides_html_sharing.group_guides_user"/>
+    <menuitem id="menu_guides_tags" name="Tags"
+              parent="menu_guides_root" action="action_guides_tag"
+              sequence="30" groups="guides_html_sharing.group_guides_user"/>
+</odoo>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_guides_folder_form" model="ir.ui.view">
+        <field name="name">guides.folder.form</field>
+        <field name="model">guides.folder</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="parent_id"/>
+                        <field name="inherit_parent_access"/>
+                        <field name="complete_name" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Members">
+                            <field name="member_ids">
+                                <list editable="bottom">
+                                    <field name="user_id"/>
+                                    <field name="access_level"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_guides_folder_list" model="ir.ui.view">
+        <field name="name">guides.folder.list</field>
+        <field name="model">guides.folder</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="complete_name"/>
+                <field name="document_count"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_guides_folder" model="ir.actions.act_window">
+        <field name="name">Folders</field>
+        <field name="res_model">guides.folder</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
