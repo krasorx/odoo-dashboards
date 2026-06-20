@@ -1,6 +1,16 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_guides_tag_user,guides.tag user,model_guides_tag,base.group_user,1,1,1,1
-access_guides_folder_user,guides.folder user,model_guides_folder,base.group_user,1,1,1,1
-access_guides_folder_member_user,guides.folder.member user,model_guides_folder_member,base.group_user,1,1,1,1
-access_guides_document_user,guides.document user,model_guides_document,base.group_user,1,1,1,1
-access_guides_document_version_user,guides.document.version user,model_guides_document_version,base.group_user,1,1,1,1
+access_guides_tag_viewer,guides.tag viewer,model_guides_tag,guides_html_sharing.group_guides_viewer,1,0,0,0
+access_guides_tag_user,guides.tag user,model_guides_tag,guides_html_sharing.group_guides_user,1,1,1,0
+access_guides_tag_admin,guides.tag admin,model_guides_tag,guides_html_sharing.group_guides_admin,1,1,1,1
+access_guides_folder_viewer,guides.folder viewer,model_guides_folder,guides_html_sharing.group_guides_viewer,1,0,0,0
+access_guides_folder_user,guides.folder user,model_guides_folder,guides_html_sharing.group_guides_user,1,0,0,0
+access_guides_folder_admin,guides.folder admin,model_guides_folder,guides_html_sharing.group_guides_admin,1,1,1,1
+access_guides_folder_member_viewer,guides.folder.member viewer,model_guides_folder_member,guides_html_sharing.group_guides_viewer,1,0,0,0
+access_guides_folder_member_user,guides.folder.member user,model_guides_folder_member,guides_html_sharing.group_guides_user,1,0,0,0
+access_guides_folder_member_admin,guides.folder.member admin,model_guides_folder_member,guides_html_sharing.group_guides_admin,1,1,1,1
+access_guides_document_viewer,guides.document viewer,model_guides_document,guides_html_sharing.group_guides_viewer,1,0,0,0
+access_guides_document_user,guides.document user,model_guides_document,guides_html_sharing.group_guides_user,1,1,1,1
+access_guides_document_admin,guides.document admin,model_guides_document,guides_html_sharing.group_guides_admin,1,1,1,1
+access_guides_version_viewer,guides.document.version viewer,model_guides_document_version,guides_html_sharing.group_guides_viewer,1,0,0,0
+access_guides_version_user,guides.document.version user,model_guides_document_version,guides_html_sharing.group_guides_user,1,1,1,1
+access_guides_version_admin,guides.document.version admin,model_guides_document_version,guides_html_sharing.group_guides_admin,1,1,1,1

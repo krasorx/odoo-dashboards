@@ -7,6 +7,7 @@
     'author': 'krasorx',
     'depends': ['web', 'mail', 'project', 'portal'],
     'data': [
+        'security/guides_security.xml',
         'security/ir.model.access.csv',
     ],
     'assets': {

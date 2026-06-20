@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from odoo.exceptions import AccessError
 
 
 class GuidesDocument(models.Model):
@@ -41,6 +42,14 @@ class GuidesDocument(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        is_admin = self.env.is_superuser() or self.env.user.has_group(
+            'guides_html_sharing.group_guides_admin')
+        if not is_admin:
+            for vals in vals_list:
+                folder = self.env['guides.folder'].browse(vals.get('folder_id'))
+                if not folder or not folder.sudo().user_can_contribute(self.env.user):
+                    raise AccessError(
+                        "You don't have contributor rights on this folder.")
         docs = super().create(vals_list)
         for doc in docs:
             # Number any versions created inline, and set the latest active.
