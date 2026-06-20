@@ -120,3 +120,19 @@ class GuidesDocument(models.Model):
             return self.browse()
         doc = self.sudo().search([('share_token', '=', token)], limit=1)
         return doc if (doc and doc._is_share_valid()) else self.browse()
+
+    def action_request_edit_access(self, note=False):
+        self.ensure_one()
+        requester = self.env.user
+        doc_sudo = self.sudo()
+        request = self.env['guides.access.request'].sudo().create({
+            'document_id': self.id,
+            'user_id': requester.id,
+            'note': note,
+        })
+        doc_sudo.activity_schedule(
+            'guides_html_sharing.mail_activity_edit_request',
+            user_id=doc_sudo.owner_id.id,
+            note=f"{requester.name} requested edit access. {note or ''}",
+            summary='Edit access requested')
+        return request

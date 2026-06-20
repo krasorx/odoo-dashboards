@@ -5,3 +5,4 @@ from . import test_document_version
 from . import test_permissions
 from . import test_share_token
 from . import test_project
+from . import test_access_request
