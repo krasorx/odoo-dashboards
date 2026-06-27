@@ -27,7 +27,7 @@ export class BomLevelColumn extends Component {
                     <!-- Structure mode: render BomProductCard for every item -->
                     <t t-if="props.mode === 'structure'">
                         <t t-foreach="group.items" t-as="item" t-key="item.product_id">
-                            <BomProductCard product="item"/>
+                            <BomProductCard product="item" onClick="props.onCardClick"/>
                         </t>
                     </t>
 
@@ -68,6 +68,7 @@ export class BomLevelColumn extends Component {
         groups: Array,
         mode: String,
         emptyText: { type: String, optional: true },
+        onCardClick: { type: Function, optional: true },
     };
 
     get badgeClass() {

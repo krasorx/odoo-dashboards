@@ -3,7 +3,7 @@ import { Component, xml } from "@odoo/owl";
 
 export class BomProductCard extends Component {
     static template = xml`
-        <div t-att-class="cardClass">
+        <div t-att-class="cardClass" t-on-click="() => props.onClick and props.onClick(props.product)">
             <!-- Header row -->
             <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
                 <t t-if="isBought">
@@ -33,7 +33,7 @@ export class BomProductCard extends Component {
         </div>
     `;
 
-    static props = { product: Object };
+    static props = { product: Object, onClick: { type: Function, optional: true } };
 
     get isBought() {
         return this.props.product.route_type === 'buy';
@@ -41,7 +41,7 @@ export class BomProductCard extends Component {
 
     get cardClass() {
         return [
-            'rounded-xl border overflow-hidden mb-2 bg-white transition-shadow cursor-default',
+            'rounded-xl border overflow-hidden mb-2 bg-white transition-shadow cursor-pointer',
             this.isBought
                 ? 'border-dashed border-gray-200 opacity-70'
                 : 'border-gray-200 shadow-sm hover:shadow-md',

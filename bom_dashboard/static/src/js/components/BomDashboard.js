@@ -1,9 +1,11 @@
 /** @odoo-module */
 import { Component, useState, onMounted, onWillUnmount, xml } from "@odoo/owl";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 import { BomSidebar } from "./BomSidebar";
 import { BomStructureView } from "./BomStructureView";
 import { BomMoView } from "./BomMoView";
+import { BomDetailDialog } from "./BomDetailDialog";
 
 // Ensure Tailwind is available early (before first render)
 if (!document.querySelector('#bom-tw-cdn')) {
@@ -79,6 +81,7 @@ export class BomDashboard extends Component {
                             columns="visibleColumns"
                             hiddenCount="hiddenLevelsCount"
                             onShowAll.bind="showAllLevels"
+                            onCardClick.bind="openDetail"
                         />
                     </t>
                     <t t-else="">
@@ -107,6 +110,7 @@ export class BomDashboard extends Component {
             showAll: false,
             loading: false,
         });
+        this.dialog = useService("dialog");
         this._timer = null;
 
         onMounted(async () => {
@@ -153,6 +157,17 @@ export class BomDashboard extends Component {
         this._timer = setInterval(() => {
             if (this.state.activeTab === 'mos') this.loadData();
         }, 30_000);
+    }
+
+    openDetail(product) {
+        if (!product || !product.product_id) return;
+        const bomId = product.bom_id || this.state.selectedBomId;
+        if (!bomId) return;
+        this.dialog.add(BomDetailDialog, {
+            bomId: bomId,
+            productId: product.product_id,
+            qty: product.qty || 1,
+        });
     }
 
     setTab(tab) {

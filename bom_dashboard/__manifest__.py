@@ -4,7 +4,7 @@
     'version': '19.0.1.0.0',
     'category': 'Manufacturing',
     'summary': 'Multi-level BOM dashboard with structure and active MOs views',
-    'depends': ['mrp', 'web'],
+    'depends': ['mrp', 'web', 'production_dashboard'],
     'data': [
         'security/ir.model.access.csv',
         'views/bom_dashboard_menu.xml',
@@ -13,6 +13,7 @@
         'web.assets_backend': [
             'bom_dashboard/static/src/js/components/bom_colors.js',
             'bom_dashboard/static/src/js/components/BomProductCard.js',
+            'bom_dashboard/static/src/js/components/BomDetailDialog.js',
             'bom_dashboard/static/src/js/components/MoBomCard.js',
             'bom_dashboard/static/src/js/components/BomLevelColumn.js',
             'bom_dashboard/static/src/js/components/BomSidebar.js',

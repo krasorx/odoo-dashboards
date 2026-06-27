@@ -12,6 +12,7 @@ export class BomStructureView extends Component {
                         groups="col"
                         mode="'structure'"
                         emptyText="'Sin productos'"
+                        onCardClick="props.onCardClick"
                     />
                     <!-- Arrow: show between columns and before "Ver más" -->
                     <t t-if="col_index !== props.columns.length - 1 or props.hiddenCount !== 0">
@@ -40,5 +41,6 @@ export class BomStructureView extends Component {
         columns: Array,
         hiddenCount: Number,
         onShowAll: Function,
+        onCardClick: { type: Function, optional: true },
     };
 }

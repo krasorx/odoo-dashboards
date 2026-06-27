@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cache_ttl_param" model="ir.config_parameter">
+            <field name="key">production_dashboard.cache_ttl</field>
+            <field name="value">3600</field>
+        </record>
+    </data>
+</odoo>
