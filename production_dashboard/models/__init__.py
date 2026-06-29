@@ -9,3 +9,4 @@ from . import purchase_order
 from . import mrp_bom
 from . import product
 from . import stock
+from . import demo_data
