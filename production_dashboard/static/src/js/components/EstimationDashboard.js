@@ -6,6 +6,7 @@ import { CostBreakdownChart } from "./CostBreakdownChart";
 import { ComponentsTable } from "./ComponentsTable";
 import { HistoryPanel } from "./HistoryPanel";
 import { EstimationFilters } from "./EstimationFilters";
+import { AiAnalysisPanel } from "./AiAnalysisPanel";
 
 export class EstimationDashboard extends Component {
     static props = {
@@ -14,42 +15,66 @@ export class EstimationDashboard extends Component {
         updateActionState: { type: Function, optional: true },
         className: { type: String, optional: true },
     };
-    static components = { KpiCards, CostBreakdownChart, ComponentsTable, HistoryPanel, EstimationFilters };
+    static components = { KpiCards, CostBreakdownChart, ComponentsTable, HistoryPanel, EstimationFilters, AiAnalysisPanel };
     static template = xml`
-        <div class="bg-gray-50 font-sans p-4 overflow-auto" style="height:100vh;">
-            <div class="max-w-6xl mx-auto">
-                <div class="flex items-center gap-3 mb-4">
-                    <h1 class="text-xl font-bold text-gray-800">Estimación de Producción</h1>
-                    <t t-if="state.cached">
-                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">⚡ desde caché</span>
-                    </t>
-                </div>
+        <div class="pd-root" style="height:100vh; overflow:auto;">
+            <div class="pd-shell">
+                <header class="pd-masthead pd-rise">
+                    <div>
+                        <p class="pd-eyebrow">MRP · Planificación</p>
+                        <h1 class="pd-title">Estimación de <em>Producción</em></h1>
+                    </div>
+                    <div class="pd-masthead-meta">
+                        <t t-if="state.result">
+                            <div t-esc="state.result.product.name"/>
+                            <t t-if="state.cached">
+                                <span class="pd-chip is-cache mt-1"><span class="pd-blip"/> desde caché</span>
+                            </t>
+                        </t>
+                    </div>
+                </header>
+
                 <EstimationFilters state="state" products="state.products" bomVariants="state.bomVariants"
                     onCalc.bind="calculate" onProductChange.bind="loadVariants"/>
+
                 <t t-if="state.result">
+                    <div class="pd-sec"><span class="pd-idx">01</span><span>Indicadores</span><span class="pd-rule"/></div>
                     <KpiCards kpis="state.result.kpis" mode="state.result.mode"
                         extra="state.result.mode === 'cost' ? {max_qty: state.result.max_qty, remaining: state.result.remaining} : undefined"/>
+
                     <t t-if="state.result.alerts.length">
-                        <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-sm text-red-700">
+                        <div class="pd-alert pd-rise" style="margin:0 0 22px;">
                             <t t-foreach="state.result.alerts" t-as="a" t-key="a_index">
-                                <div>⚠ <t t-esc="a.product"/> <t t-if="a.type === 'stock'">— faltan <t t-esc="a.missing"/></t><t t-else="">— sin BOM</t></div>
+                                <div class="pd-alert-row">▲ <b t-esc="a.product"/>
+                                    <t t-if="a.type === 'stock'"><span>— faltan <t t-esc="a.missing"/></span></t>
+                                    <t t-else=""><span>— sin BOM</span></t>
+                                </div>
                             </t>
                         </div>
                     </t>
+
+                    <div class="pd-sec"><span class="pd-idx">02</span><span>Componentes</span><span class="pd-rule"/></div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="lg:col-span-2">
                             <ComponentsTable components="state.result.components"/>
                         </div>
-                        <div>
+                        <div class="space-y-4">
                             <CostBreakdownChart breakdown="state.result.cost_breakdown"/>
                             <HistoryPanel history="state.history" onPick.bind="applyHistory"/>
                         </div>
                     </div>
+
+                    <t t-if="state.aiAvailable">
+                        <div class="pd-sec" style="margin-top:28px;"><span class="pd-idx">03</span><span>Asistente IA</span><span class="pd-rule"/></div>
+                        <AiAnalysisPanel t-key="state.calcSeq" state="state" connectorName="state.aiConnector"/>
+                    </t>
                 </t>
                 <t t-else="">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="lg:col-span-2 flex items-center justify-center text-gray-300 text-sm h-40">
-                            Elegí un producto y calculá una estimación
+                        <div class="lg:col-span-2">
+                            <div class="pd-empty">
+                                <div><div class="pd-empty-mark">⌖</div>Elegí un producto y calculá una estimación</div>
+                            </div>
                         </div>
                         <HistoryPanel history="state.history" onPick.bind="applyHistory"/>
                     </div>
@@ -63,10 +88,18 @@ export class EstimationDashboard extends Component {
             qty: 1, budget: 0, planning_date: false, only_in_stock: false,
             products: [], bomVariants: [], result: null, history: [],
             cached: false, loading: false,
+            aiAvailable: false, aiConnector: false, calcSeq: 0,
         });
         onWillStart(async () => {
             this.state.products = await rpc('/production/estimation/products', {});
             this.state.history = await rpc('/production/estimation/history', {});
+            try {
+                const ai = await rpc('/production/estimation/ai_status', {});
+                this.state.aiAvailable = !!ai.available;
+                this.state.aiConnector = ai.connector_name || false;
+            } catch (e) {
+                this.state.aiAvailable = false;
+            }
             const params = (this.props.action && this.props.action.params) || {};
             if (params.product_id) {
                 this.state.product_id = params.product_id;
@@ -99,6 +132,7 @@ export class EstimationDashboard extends Component {
             });
             this.state.result = out.result;
             this.state.cached = out.cached;
+            this.state.calcSeq++;  // remount the AI panel fresh for this estimation
             this.state.history = await rpc('/production/estimation/history', {});
         } catch (e) {
             console.error('[EstimationDashboard]', e);

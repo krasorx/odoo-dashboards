@@ -14,12 +14,14 @@
     ],
     'assets': {
         'web.assets_backend': [
+            'production_dashboard/static/src/css/dashboard.css',
             'production_dashboard/static/src/js/cdn_loader.js',
             'production_dashboard/static/src/js/components/KpiCards.js',
             'production_dashboard/static/src/js/components/CostBreakdownChart.js',
             'production_dashboard/static/src/js/components/ComponentsTable.js',
             'production_dashboard/static/src/js/components/HistoryPanel.js',
             'production_dashboard/static/src/js/components/EstimationFilters.js',
+            'production_dashboard/static/src/js/components/AiAnalysisPanel.js',
             'production_dashboard/static/src/js/components/EstimationDashboard.js',
             'production_dashboard/static/src/js/estimation_action.js',
         ],

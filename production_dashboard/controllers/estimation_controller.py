@@ -45,3 +45,20 @@ class EstimationController(http.Controller):
     def bom_detail(self, bom_id, qty=1.0):
         return request.env['production.estimation.engine'].sudo().bom_detail(
             int(bom_id), float(qty or 1.0))
+
+    # ── AI assistant (only meaningful when custom_agent is installed) ────────
+    @http.route('/production/estimation/ai_status', type='jsonrpc', auth='user', methods=['POST'])
+    def ai_status(self):
+        return request.env['production.estimation.ai'].sudo().status()
+
+    @http.route('/production/estimation/ai_analyze', type='jsonrpc', auth='user', methods=['POST'])
+    def ai_analyze(self, mode, product_id, bom_id=False, qty=0, budget=0, filters=None):
+        return request.env['production.estimation.ai'].sudo().analyze(
+            mode, int(product_id), int(bom_id) if bom_id else False,
+            float(qty or 0), float(budget or 0), filters or {})
+
+    @http.route('/production/estimation/ai_execute', type='jsonrpc', auth='user', methods=['POST'])
+    def ai_execute(self, kind, mode, product_id, bom_id=False, qty=0, budget=0, filters=None):
+        return request.env['production.estimation.ai'].sudo().execute(
+            kind, mode, int(product_id), int(bom_id) if bom_id else False,
+            float(qty or 0), float(budget or 0), filters or {})
