@@ -77,6 +77,9 @@
     color: var(--ink-soft);
 }
 .pd-sec .pd-idx { color: var(--accent); font-weight: 700; }
+.pd-sec .pd-export-actions {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto;
+}
 .pd-sec .pd-rule { flex: 1; height: 1px; background: var(--line); }
 
 /* ---- Cards --------------------------------------------------------------- */
@@ -192,7 +195,32 @@
 .pd-btn-ghost.is-active { border-color: var(--accent-deep); color: var(--accent-deep); background: #fff8f0; }
 .pd-comp-hint { font: 500 11px/1.3 var(--mono); color: var(--muted); }
 
-.pd-comp-cell { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.pd-comp-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+}
+.pd-comp-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.pd-comp-scroll::-webkit-scrollbar-thumb {
+    background: var(--line-2); border-radius: 4px;
+}
+.pd-comp-scroll::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+.pd-comp-scroll.is-multilevel {
+    max-height: min(520px, 58vh);
+    overflow-y: auto;
+}
+.pd-table-components { min-width: 100%; width: max-content; }
+.pd-table-components thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--surface);
+    box-shadow: 0 1px 0 var(--line-2);
+}
+.pd-table-components tbody td:first-child { min-width: 220px; }
+
+.pd-comp-cell { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; }
 .pd-tree-toggle {
     width: 22px; height: 22px; flex: 0 0 auto; border: 1px solid var(--line-2);
     border-radius: 3px; background: var(--surface); color: var(--ink-soft);

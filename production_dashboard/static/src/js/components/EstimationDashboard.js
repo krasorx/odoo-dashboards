@@ -57,7 +57,24 @@ export class EstimationDashboard extends Component {
                         </div>
                     </t>
 
-                    <div class="pd-sec"><span class="pd-idx">02</span><span>Componentes</span><span class="pd-rule"/></div>
+                    <div class="pd-sec">
+                        <span class="pd-idx">02</span><span>Componentes</span>
+                        <div class="pd-export-actions">
+                            <button type="button" class="pd-btn pd-btn-ghost pd-btn-sm"
+                                t-att-disabled="state.exporting"
+                                t-on-click="() => this.exportXlsx('flattened')">
+                                <t t-if="state.exporting === 'flattened'">Exportando…</t>
+                                <t t-else="">XLSX acumulado</t>
+                            </button>
+                            <button type="button" class="pd-btn pd-btn-ghost pd-btn-sm"
+                                t-att-disabled="state.exporting"
+                                t-on-click="() => this.exportXlsx('multilevel')">
+                                <t t-if="state.exporting === 'multilevel'">Exportando…</t>
+                                <t t-else="">XLSX multinivel</t>
+                            </button>
+                        </div>
+                        <span class="pd-rule"/>
+                    </div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="lg:col-span-2">
                             <ComponentsTable components="state.result.components"/>
@@ -94,6 +111,7 @@ export class EstimationDashboard extends Component {
             products: [], bomVariants: [], result: null, history: [],
             cached: false, loading: false,
             aiAvailable: false, aiConnector: false, calcSeq: 0,
+            exporting: false,
         });
         onWillStart(async () => {
             this.state.products = await rpc('/production/estimation/products', {});
@@ -143,6 +161,36 @@ export class EstimationDashboard extends Component {
             console.error('[EstimationDashboard]', e);
         } finally {
             this.state.loading = false;
+        }
+    }
+    async exportXlsx(exportType) {
+        if (!this.state.product_id || this.state.exporting) return;
+        this.state.exporting = exportType;
+        try {
+            const out = await rpc('/production/estimation/export_xlsx', {
+                export_type: exportType,
+                mode: this.state.mode,
+                product_id: this.state.product_id,
+                bom_id: this.state.bom_id || false,
+                qty: this.state.qty,
+                budget: this.state.budget,
+                filters: this.filters,
+            });
+            const binary = atob(out.file);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const url = URL.createObjectURL(new Blob([bytes], { type: out.mimetype }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = out.filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('[EstimationDashboard] export', e);
+        } finally {
+            this.state.exporting = false;
         }
     }
     async applyHistory(h) {

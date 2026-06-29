@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Production Dashboard',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.3',
     'category': 'Manufacturing',
     'summary': 'Dashboard OWL de estimación de producción con caché inteligente',
     'author': 'krasorx',

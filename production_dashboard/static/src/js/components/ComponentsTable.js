@@ -16,7 +16,8 @@ export class ComponentsTable extends Component {
                     Expandí cada componente fabricado para ver sub-BoMs
                 </span>
             </div>
-            <table class="pd-table">
+            <div t-att-class="'pd-comp-scroll' + (state.multiLevel ? ' is-multilevel' : '')">
+            <table class="pd-table pd-table-components">
                 <thead>
                     <tr>
                         <th class="is-left" t-on-click="() => this.sortBy('name')">Componente</th>
@@ -65,6 +66,7 @@ export class ComponentsTable extends Component {
                     </t>
                 </tbody>
             </table>
+            </div>
         </div>
     `;
     setup() {

@@ -46,6 +46,14 @@ class EstimationController(http.Controller):
         return request.env['production.estimation.engine'].sudo().bom_detail(
             int(bom_id), float(qty or 1.0))
 
+    @http.route('/production/estimation/export_xlsx', type='jsonrpc', auth='user', methods=['POST'])
+    def export_xlsx(self, export_type, mode, product_id, bom_id=False,
+                    qty=0, budget=0, filters=None):
+        return request.env['production.estimation.export'].sudo().export(
+            export_type, mode, int(product_id), int(bom_id) if bom_id else False,
+            float(qty or 0), float(budget or 0), filters or {},
+        )
+
     # ── AI assistant (only meaningful when custom_agent is installed) ────────
     @http.route('/production/estimation/ai_status', type='jsonrpc', auth='user', methods=['POST'])
     def ai_status(self):
