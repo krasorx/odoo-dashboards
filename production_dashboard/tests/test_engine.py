@@ -54,3 +54,34 @@ class TestEngine(ProdEstCommon):
         res = self.Engine.estimate_by_quantity(self.fg.id, self.bom_fg.id, 1)
         # FG bom delay (3) + max child lead (SA manufacture bom delay 2) = 5
         self.assertAlmostEqual(res['kpis']['total_lead_time'], 5.0)
+
+    def test_real_cost_counts_only_missing_qty(self):
+        warehouse = self.env['stock.warehouse'].search(
+            [('company_id', '=', self.env.company.id)], limit=1,
+        )
+        location = warehouse.lot_stock_id
+        Quant = self.env['stock.quant']
+        Quant._update_available_quantity(self.c1, location, 30.0)
+        Quant._update_available_quantity(self.sa, location, 0.0)
+
+        res = self.Engine.estimate_by_quantity(self.fg.id, self.bom_fg.id, 10)
+        by_id = {c['product_id']: c for c in res['components']}
+
+        self.assertAlmostEqual(res['kpis']['total_cost'], 1550.0)
+        self.assertAlmostEqual(by_id[self.c1.id]['real_cost'], 0.0)
+        self.assertAlmostEqual(by_id[self.sa.id]['real_cost'], 800.0)
+        self.assertAlmostEqual(res['kpis']['real_cost'], 800.0)
+        self.assertAlmostEqual(res['kpis']['real_unit_cost'], 80.0)
+
+    def test_max_qty_from_stock_without_purchase(self):
+        warehouse = self.env['stock.warehouse'].search(
+            [('company_id', '=', self.env.company.id)], limit=1,
+        )
+        location = warehouse.lot_stock_id
+        Quant = self.env['stock.quant']
+        Quant._update_available_quantity(self.c1, location, 30.0)
+        Quant._update_available_quantity(self.sa, location, 20.0)
+
+        res = self.Engine.estimate_by_quantity(self.fg.id, self.bom_fg.id, 10)
+        self.assertEqual(res['kpis']['max_qty_from_stock'], 10)
+        self.assertAlmostEqual(res['kpis']['real_cost'], 0.0)

@@ -12,6 +12,7 @@ export class ComponentsTable extends Component {
                         <th t-on-click="() => this.sortBy('qty_needed')">Cant.</th>
                         <th t-on-click="() => this.sortBy('unit_cost')">Coste u.</th>
                         <th t-on-click="() => this.sortBy('total_cost')">Coste tot.</th>
+                        <th t-on-click="() => this.sortBy('real_cost')">Coste real</th>
                         <th t-on-click="() => this.sortBy('qty_available')">Stock</th>
                         <th t-on-click="() => this.sortBy('lead_time')">Lead</th>
                         <th class="is-left" style="text-align:left">Estado</th>
@@ -26,6 +27,7 @@ export class ComponentsTable extends Component {
                             <td class="pd-num" t-esc="num(c.qty_needed)"/>
                             <td class="pd-num" t-esc="num(c.unit_cost)"/>
                             <td class="pd-num-strong" t-esc="num(c.total_cost)"/>
+                            <td t-att-class="c.real_cost ? 'pd-num-strong' : 'pd-num'" t-esc="num(c.real_cost)"/>
                             <td class="pd-num" t-esc="num(c.qty_available)"/>
                             <td class="pd-num" t-esc="c.lead_time + ''"/>
                             <td class="is-left" style="text-align:left">

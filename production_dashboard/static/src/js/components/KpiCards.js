@@ -4,7 +4,7 @@ import { Component, xml } from "@odoo/owl";
 export class KpiCards extends Component {
     static props = { kpis: Object, mode: String, extra: { type: Object, optional: true } };
     static template = xml`
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 pd-stagger">
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6 pd-stagger">
             <div class="pd-kpi">
                 <p class="pd-kpi-label">Coste unitario</p>
                 <p class="pd-kpi-value" t-esc="fmt(props.kpis.unit_cost)"/>
@@ -12,6 +12,11 @@ export class KpiCards extends Component {
             <div class="pd-kpi is-accent">
                 <p class="pd-kpi-label">Coste total</p>
                 <p class="pd-kpi-value t-accent" t-esc="fmt(props.kpis.total_cost)"/>
+            </div>
+            <div class="pd-kpi is-ok">
+                <p class="pd-kpi-label">Coste real</p>
+                <p class="pd-kpi-value t-ok" t-esc="fmt(props.kpis.real_cost)"/>
+                <p class="pd-kpi-sub" t-esc="realSub"/>
             </div>
             <div class="pd-kpi">
                 <p class="pd-kpi-label">Lead time</p>
@@ -37,6 +42,15 @@ export class KpiCards extends Component {
     `;
     fmt(v) { return (v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     pct(v) { return (v || 0).toFixed(0) + '%'; }
+    get realSub() {
+        const unit = this.props.kpis.real_unit_cost || 0;
+        const free = this.props.kpis.max_qty_from_stock || 0;
+        const parts = [this.fmt(unit) + ' / u. a comprar'];
+        if (free > 0) {
+            parts.push(free + ' u. fabricables sin compra');
+        }
+        return parts.join(' · ');
+    }
     get stockClass() {
         const v = this.props.kpis.pct_in_stock || 0;
         return v >= 80 ? 't-ok' : (v >= 40 ? 't-warn' : 't-danger');

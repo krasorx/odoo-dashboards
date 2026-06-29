@@ -73,21 +73,30 @@ class ProductionEstimationEngine(models.AbstractModel):
         components, cost_breakdown, alerts = [], [], []
         in_stock_count = 0
         total_material_cost = 0.0
+        total_real_cost = 0.0
         max_child_lead = 0.0
+        max_qty_from_stock = 0.0
 
         if bom:
+            stock_limits = []
             for line in bom.bom_line_ids:
                 comp = line.product_id
                 involved.add(comp.id)
-                qty_needed = (line.product_qty / (bom.product_qty or 1.0)) * qty
+                qty_per_unit = line.product_qty / (bom.product_qty or 1.0)
+                qty_needed = qty_per_unit * qty
                 unit_cost = self._unit_cost(comp, memo)
                 total_cost = unit_cost * qty_needed
                 available = comp.qty_available
                 missing = max(0.0, qty_needed - available)
+                # Stock on hand is treated as already paid → real cost only
+                # for the quantity that still must be acquired.
+                real_cost = unit_cost * missing
                 route = self._route_type(comp, mfg_route)
                 lead = self._lead_time(comp, route)
                 has_bom = bool(self._bom_find(comp))
                 has_stock = available >= qty_needed
+                if qty_per_unit > 0:
+                    stock_limits.append(available / qty_per_unit)
                 if has_stock:
                     in_stock_count += 1
                 else:
@@ -96,6 +105,7 @@ class ProductionEstimationEngine(models.AbstractModel):
                         'missing': missing,
                     })
                 total_material_cost += total_cost
+                total_real_cost += real_cost
                 max_child_lead = max(max_child_lead, lead)
                 components.append({
                     'product_id': comp.id,
@@ -104,6 +114,7 @@ class ProductionEstimationEngine(models.AbstractModel):
                     'qty_needed': qty_needed,
                     'unit_cost': unit_cost,
                     'total_cost': total_cost,
+                    'real_cost': real_cost,
                     'qty_available': available,
                     'qty_missing': missing,
                     'has_stock': has_stock,
@@ -112,11 +123,18 @@ class ProductionEstimationEngine(models.AbstractModel):
                     'lead_time': lead,
                 })
                 cost_breakdown.append({'name': comp.display_name, 'value': total_cost})
+            max_qty_from_stock = (
+                math.floor(min(stock_limits)) if stock_limits else 0.0
+            )
             unit_cost_total = self._unit_cost(product, memo)
             fg_bom_delay = bom.produce_delay or 0.0
         else:
             unit_cost_total = product.standard_price
             total_material_cost = unit_cost_total * qty
+            available = product.qty_available
+            missing = max(0.0, qty - available)
+            total_real_cost = unit_cost_total * missing
+            max_qty_from_stock = math.floor(available) if qty > 0 else 0.0
             fg_bom_delay = 0.0
             alerts.append({'type': 'no_bom', 'product': product.display_name})
 
@@ -137,6 +155,11 @@ class ProductionEstimationEngine(models.AbstractModel):
             'kpis': {
                 'unit_cost': unit_cost_total,
                 'total_cost': total_material_cost,
+                'real_cost': total_real_cost,
+                'real_unit_cost': (
+                    total_real_cost / qty if qty > 0 else 0.0
+                ),
+                'max_qty_from_stock': max_qty_from_stock,
                 'total_lead_time': total_lead_time,
                 'pct_in_stock': pct_in_stock,
                 'components_count': components_count,
