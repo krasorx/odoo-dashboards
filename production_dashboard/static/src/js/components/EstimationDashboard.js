@@ -4,6 +4,7 @@ import { rpc } from "@web/core/network/rpc";
 import { KpiCards } from "./KpiCards";
 import { CostBreakdownChart } from "./CostBreakdownChart";
 import { ComponentsTable } from "./ComponentsTable";
+import { StockTraceabilityPanel } from "./StockTraceabilityPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { EstimationFilters } from "./EstimationFilters";
 import { AiAnalysisPanel } from "./AiAnalysisPanel";
@@ -15,7 +16,10 @@ export class EstimationDashboard extends Component {
         updateActionState: { type: Function, optional: true },
         className: { type: String, optional: true },
     };
-    static components = { KpiCards, CostBreakdownChart, ComponentsTable, HistoryPanel, EstimationFilters, AiAnalysisPanel };
+    static components = {
+        KpiCards, CostBreakdownChart, ComponentsTable, StockTraceabilityPanel,
+        HistoryPanel, EstimationFilters, AiAnalysisPanel,
+    };
     static template = xml`
         <div class="pd-root" style="height:100vh; overflow:auto;">
             <div class="pd-shell">
@@ -57,6 +61,7 @@ export class EstimationDashboard extends Component {
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="lg:col-span-2">
                             <ComponentsTable components="state.result.components"/>
+                            <StockTraceabilityPanel traceability="state.result.stock_traceability"/>
                         </div>
                         <div class="space-y-4">
                             <CostBreakdownChart breakdown="state.result.cost_breakdown"/>

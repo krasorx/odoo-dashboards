@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Production Dashboard',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Manufacturing',
     'summary': 'Dashboard OWL de estimación de producción con caché inteligente',
     'author': 'krasorx',
@@ -20,6 +20,7 @@
             'production_dashboard/static/src/js/components/KpiCards.js',
             'production_dashboard/static/src/js/components/CostBreakdownChart.js',
             'production_dashboard/static/src/js/components/ComponentsTable.js',
+            'production_dashboard/static/src/js/components/StockTraceabilityPanel.js',
             'production_dashboard/static/src/js/components/HistoryPanel.js',
             'production_dashboard/static/src/js/components/EstimationFilters.js',
             'production_dashboard/static/src/js/components/AiAnalysisPanel.js',

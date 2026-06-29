@@ -73,6 +73,40 @@ class TestEngine(ProdEstCommon):
         self.assertAlmostEqual(res['kpis']['real_cost'], 800.0)
         self.assertAlmostEqual(res['kpis']['real_unit_cost'], 80.0)
 
+    def test_multilevel_bom_children(self):
+        res = self.Engine.estimate_by_quantity(self.fg.id, self.bom_fg.id, 1)
+        sa = next(c for c in res['components'] if c['product_id'] == self.sa.id)
+        self.assertTrue(sa['has_bom'])
+        self.assertEqual(sa['child_count'], 1)
+        self.assertEqual(sa['children'][0]['product_id'], self.r1.id)
+        self.assertAlmostEqual(sa['children'][0]['qty_needed'], 8.0)
+        self.assertEqual(res['kpis']['components_count'], 2)
+        self.assertEqual(res['kpis']['tree_nodes_count'], 3)
+
+    def test_stock_breakdown_and_traceability(self):
+        warehouse = self.env['stock.warehouse'].search(
+            [('company_id', '=', self.env.company.id)], limit=1,
+        )
+        lot = self.env['stock.lot'].create({
+            'name': 'LOT-TEST-R1',
+            'product_id': self.r1.id,
+        })
+        self.env['stock.quant'].sudo().with_context(inventory_mode=True).create({
+            'product_id': self.r1.id,
+            'location_id': warehouse.lot_stock_id.id,
+            'lot_id': lot.id,
+            'inventory_quantity': 5.0,
+        }).action_apply_inventory()
+
+        res = self.Engine.estimate_by_quantity(self.fg.id, self.bom_fg.id, 1)
+        sa = next(c for c in res['components'] if c['product_id'] == self.sa.id)
+        r1 = sa['children'][0]
+        self.assertTrue(r1['stock_detail'])
+        self.assertEqual(r1['stock_detail'][0]['lot_name'], 'LOT-TEST-R1')
+        self.assertIn('Stock', r1['stock_detail'][0]['location'])
+        trace = {t['product_id']: t for t in res['stock_traceability']}
+        self.assertIn(self.r1.id, trace)
+
     def test_max_qty_from_stock_without_purchase(self):
         warehouse = self.env['stock.warehouse'].search(
             [('company_id', '=', self.env.company.id)], limit=1,

@@ -45,20 +45,130 @@ class ProductionEstimationEngine(models.AbstractModel):
     def _route_type(self, product, mfg_route):
         if mfg_route and mfg_route in product.route_ids:
             return 'manufacture'
-        # Fallback robusto: si el producto tiene BOM, se considera fabricado
         if self._bom_find(product):
             return 'manufacture'
         return 'buy'
 
     @api.model
     def _lead_time(self, product, route):
-        """Lead time en días. Fabricación -> produce_delay de su BOM;
-        compra -> delay del proveedor preferido."""
         if route == 'manufacture':
             bom = self._bom_find(product)
             return bom.produce_delay if bom else 0.0
         seller = product.seller_ids[:1]
         return seller.delay if seller else 0.0
+
+    @api.model
+    def _stock_breakdown(self, product):
+        """On-hand detail by internal location and lot/serial."""
+        Quant = self.env['stock.quant'].sudo()
+        quants = Quant.search([
+            ('product_id', '=', product.id),
+            ('location_id.usage', '=', 'internal'),
+            ('quantity', '>', 0),
+        ], order='location_id, lot_id')
+        tracking = product.tracking or 'none'
+        lines = []
+        for quant in quants:
+            lines.append({
+                'lot_name': quant.lot_id.name if quant.lot_id else '',
+                'tracking': tracking,
+                'qty': quant.quantity,
+                'location': quant.location_id.display_name,
+                'location_id': quant.location_id.id,
+            })
+        return lines
+
+    @api.model
+    def _build_component_row(
+        self, comp, qty_needed, memo, mfg_route, involved,
+        depth=0, parent_key='',
+    ):
+        involved.add(comp.id)
+        unit_cost = self._unit_cost(comp, memo)
+        total_cost = unit_cost * qty_needed
+        available = comp.qty_available
+        missing = max(0.0, qty_needed - available)
+        real_cost = unit_cost * missing
+        route = self._route_type(comp, mfg_route)
+        lead = self._lead_time(comp, route)
+        child_bom = self._bom_find(comp)
+        has_bom = bool(child_bom)
+        has_stock = available >= qty_needed
+        node_key = f'{parent_key}/{comp.id}' if parent_key else str(comp.id)
+
+        children = []
+        if child_bom and depth < MAX_BOM_DEPTH:
+            for line in child_bom.bom_line_ids:
+                qty_per = line.product_qty / (child_bom.product_qty or 1.0)
+                child_qty = qty_per * qty_needed
+                child_row, _alerts = self._build_component_row(
+                    line.product_id, child_qty, memo, mfg_route, involved,
+                    depth=depth + 1, parent_key=node_key,
+                )
+                children.append(child_row)
+
+        row = {
+            'node_key': node_key,
+            'product_id': comp.id,
+            'name': comp.display_name,
+            'ref': comp.default_code or '',
+            'qty_needed': qty_needed,
+            'unit_cost': unit_cost,
+            'total_cost': total_cost,
+            'real_cost': real_cost,
+            'qty_available': available,
+            'qty_missing': missing,
+            'has_stock': has_stock,
+            'route': route,
+            'has_bom': has_bom,
+            'lead_time': lead,
+            'depth': depth,
+            'tracking': comp.tracking or 'none',
+            'stock_detail': self._stock_breakdown(comp),
+            'children': children,
+            'child_count': len(children),
+        }
+        alerts = []
+        if not has_stock:
+            alerts.append({
+                'type': 'stock',
+                'product': comp.display_name,
+                'missing': missing,
+                'depth': depth,
+            })
+        return row, alerts
+
+    @api.model
+    def _collect_stock_traceability(self, components):
+        """Flatten tree into traceability groups for section 2.5."""
+        groups = []
+
+        def walk(nodes):
+            for node in nodes:
+                detail = node.get('stock_detail') or []
+                if detail:
+                    groups.append({
+                        'node_key': node['node_key'],
+                        'product_id': node['product_id'],
+                        'product': node['name'],
+                        'ref': node.get('ref') or '',
+                        'tracking': node.get('tracking') or 'none',
+                        'depth': node.get('depth', 0),
+                        'qty_needed': node.get('qty_needed', 0.0),
+                        'lines': detail,
+                    })
+                walk(node.get('children') or [])
+
+        walk(components)
+        return groups
+
+    @api.model
+    def _count_tree_nodes(self, components):
+        total = 0
+        for node in components:
+            total += 1
+            total += self._count_tree_nodes(node.get('children') or [])
+        return total
 
     @api.model
     def estimate_by_quantity(self, product_id, bom_id, qty, filters=None):
@@ -81,48 +191,24 @@ class ProductionEstimationEngine(models.AbstractModel):
             stock_limits = []
             for line in bom.bom_line_ids:
                 comp = line.product_id
-                involved.add(comp.id)
                 qty_per_unit = line.product_qty / (bom.product_qty or 1.0)
                 qty_needed = qty_per_unit * qty
-                unit_cost = self._unit_cost(comp, memo)
-                total_cost = unit_cost * qty_needed
-                available = comp.qty_available
-                missing = max(0.0, qty_needed - available)
-                # Stock on hand is treated as already paid → real cost only
-                # for the quantity that still must be acquired.
-                real_cost = unit_cost * missing
-                route = self._route_type(comp, mfg_route)
-                lead = self._lead_time(comp, route)
-                has_bom = bool(self._bom_find(comp))
-                has_stock = available >= qty_needed
-                if qty_per_unit > 0:
-                    stock_limits.append(available / qty_per_unit)
-                if has_stock:
+                row, row_alerts = self._build_component_row(
+                    comp, qty_needed, memo, mfg_route, involved, depth=0,
+                )
+                alerts.extend(row_alerts)
+                if row['has_stock']:
                     in_stock_count += 1
-                else:
-                    alerts.append({
-                        'type': 'stock', 'product': comp.display_name,
-                        'missing': missing,
-                    })
-                total_material_cost += total_cost
-                total_real_cost += real_cost
-                max_child_lead = max(max_child_lead, lead)
-                components.append({
-                    'product_id': comp.id,
-                    'name': comp.display_name,
-                    'ref': comp.default_code or '',
-                    'qty_needed': qty_needed,
-                    'unit_cost': unit_cost,
-                    'total_cost': total_cost,
-                    'real_cost': real_cost,
-                    'qty_available': available,
-                    'qty_missing': missing,
-                    'has_stock': has_stock,
-                    'route': route,
-                    'has_bom': has_bom,
-                    'lead_time': lead,
+                if qty_per_unit > 0:
+                    stock_limits.append(row['qty_available'] / qty_per_unit)
+                total_material_cost += row['total_cost']
+                total_real_cost += row['real_cost']
+                max_child_lead = max(max_child_lead, row['lead_time'])
+                components.append(row)
+                cost_breakdown.append({
+                    'name': row['name'],
+                    'value': row['total_cost'],
                 })
-                cost_breakdown.append({'name': comp.display_name, 'value': total_cost})
             max_qty_from_stock = (
                 math.floor(min(stock_limits)) if stock_limits else 0.0
             )
@@ -146,6 +232,8 @@ class ProductionEstimationEngine(models.AbstractModel):
         if filters.get('only_in_stock'):
             components = [c for c in components if c['has_stock']]
 
+        stock_traceability = self._collect_stock_traceability(components)
+
         return {
             'product': {'id': product.id, 'name': product.display_name,
                         'ref': product.default_code or ''},
@@ -164,8 +252,10 @@ class ProductionEstimationEngine(models.AbstractModel):
                 'pct_in_stock': pct_in_stock,
                 'components_count': components_count,
                 'missing_count': missing_count,
+                'tree_nodes_count': self._count_tree_nodes(components),
             },
             'components': components,
+            'stock_traceability': stock_traceability,
             'cost_breakdown': cost_breakdown,
             'alerts': alerts,
             'involved_product_ids': sorted(involved),

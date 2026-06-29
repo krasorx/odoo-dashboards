@@ -179,6 +179,44 @@
 }
 .pd-tag-mfg { color: var(--blue); background: #e4ecf3; }
 .pd-tag-buy { color: var(--warn); background: var(--warn-wash); }
+.pd-tag-ser { color: #5b4d8a; background: #ece8f4; }
+.pd-tag-lot { color: #2d6a4f; background: #e5f2eb; }
+.pd-tag-ghost { color: var(--muted); background: var(--surface-2); }
+
+.pd-comp-toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+}
+.pd-btn-sm { padding: 7px 12px; font-size: 11px; }
+.pd-btn-ghost.is-active { border-color: var(--accent-deep); color: var(--accent-deep); background: #fff8f0; }
+.pd-comp-hint { font: 500 11px/1.3 var(--mono); color: var(--muted); }
+
+.pd-comp-cell { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.pd-tree-toggle {
+    width: 22px; height: 22px; flex: 0 0 auto; border: 1px solid var(--line-2);
+    border-radius: 3px; background: var(--surface); color: var(--ink-soft);
+    font: 700 11px/1 var(--mono); cursor: pointer; padding: 0;
+}
+.pd-tree-toggle:hover { border-color: var(--ink); }
+.pd-tree-toggle.is-open { background: #fff8f0; border-color: var(--accent); color: var(--accent-deep); }
+.pd-tree-spacer { width: 22px; flex: 0 0 auto; display: inline-block; }
+.pd-row-child td { background: rgba(247, 243, 234, .45); }
+.pd-row-child:hover td { background: var(--surface-2); }
+
+.pd-muted-line { font: 500 12px/1.5 var(--mono); color: var(--faint); margin: 4px 0 0; }
+.pd-trace-wrap { display: flex; flex-direction: column; gap: 14px; margin-bottom: 10px; }
+.pd-trace-group { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.pd-trace-head {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    padding: 10px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+}
+.pd-trace-product { font: 600 12px/1.2 var(--sans); color: var(--ink-soft); }
+.pd-trace-ref { font: 500 10px/1 var(--mono); color: var(--muted); }
+.pd-trace-meta { margin-left: auto; font: 600 11px/1 var(--mono); color: var(--muted); }
+.pd-trace-lot { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+.pd-table-compact thead th { padding: 8px 12px; }
+.pd-table-compact tbody td { padding: 7px 12px; font-size: 12px; }
 
 /* ---- Status dot / chips -------------------------------------------------- */
 .pd-status { display: inline-flex; align-items: center; gap: 6px; font: 600 11px/1 var(--mono); }

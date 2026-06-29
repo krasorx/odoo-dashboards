@@ -5,6 +5,17 @@ export class ComponentsTable extends Component {
     static props = { components: Array };
     static template = xml`
         <div class="pd-card overflow-hidden pd-rise">
+            <div class="pd-comp-toolbar">
+                <button type="button"
+                    t-att-class="'pd-btn pd-btn-ghost pd-btn-sm ' + (state.multiLevel ? 'is-active' : '')"
+                    t-on-click="toggleMultiLevel">
+                    <t t-if="state.multiLevel">Ocultar análisis multinivel</t>
+                    <t t-else="">Análisis multinivel</t>
+                </button>
+                <span t-if="state.multiLevel" class="pd-comp-hint">
+                    Expandí cada componente fabricado para ver sub-BoMs
+                </span>
+            </div>
             <table class="pd-table">
                 <thead>
                     <tr>
@@ -19,11 +30,27 @@ export class ComponentsTable extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-foreach="sorted" t-as="c" t-key="c.product_id">
-                        <tr>
-                            <td class="is-left"><span class="pd-comp-name" t-esc="c.name"/>
-                                <span t-if="c.route === 'manufacture'" class="pd-tag pd-tag-mfg">fabr</span>
-                                <span t-else="" class="pd-tag pd-tag-buy">compra</span></td>
+                    <t t-foreach="visibleRows" t-as="c" t-key="rowKey(c, c_index)">
+                        <tr t-att-class="rowClass(c)">
+                            <td class="is-left">
+                                <div class="pd-comp-cell" t-att-style="indent(c.depth)">
+                                    <t t-if="state.multiLevel and c.child_count">
+                                        <button type="button" class="pd-tree-toggle"
+                                            t-att-class="isExpanded(rowKey(c)) ? 'is-open' : ''"
+                                            t-on-click="() => this.toggleNode(rowKey(c))">
+                                            <t t-esc="treeToggleLabel(c)"/>
+                                        </button>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="pd-tree-spacer"/>
+                                    </t>
+                                    <span class="pd-comp-name" t-esc="c.name"/>
+                                    <span t-if="c.route === 'manufacture'" class="pd-tag pd-tag-mfg">fabr</span>
+                                    <span t-else="" class="pd-tag pd-tag-buy">compra</span>
+                                    <span t-if="c.tracking === 'serial'" class="pd-tag pd-tag-ser">serie</span>
+                                    <span t-if="c.tracking === 'lot'" class="pd-tag pd-tag-lot">lote</span>
+                                </div>
+                            </td>
                             <td class="pd-num" t-esc="num(c.qty_needed)"/>
                             <td class="pd-num" t-esc="num(c.unit_cost)"/>
                             <td class="pd-num-strong" t-esc="num(c.total_cost)"/>
@@ -40,20 +67,79 @@ export class ComponentsTable extends Component {
             </table>
         </div>
     `;
-    setup() { this.state = useState({ key: 'total_cost', asc: false }); }
+    setup() {
+        this.state = useState({
+            key: 'total_cost',
+            asc: false,
+            multiLevel: false,
+            expanded: {},
+        });
+    }
     sortBy(key) {
         if (this.state.key === key) this.state.asc = !this.state.asc;
         else { this.state.key = key; this.state.asc = true; }
     }
-    num(v) { return (v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
-    get sorted() {
-        const arr = [...(this.props.components || [])];
-        const k = this.state.key, asc = this.state.asc;
-        arr.sort((a, b) => {
+    num(v) {
+        return (v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+    rowKey(c, index = 0) {
+        return c.node_key || `${c.product_id || 'row'}-${index}`;
+    }
+    treeToggleLabel(c) {
+        return this.isExpanded(this.rowKey(c)) ? 'v' : '>';
+    }
+    indent(depth) {
+        return `padding-left:${(depth || 0) * 16}px`;
+    }
+    rowClass(c) {
+        return c.depth ? 'pd-row-child' : '';
+    }
+    isExpanded(nodeKey) {
+        return !!this.state.expanded[nodeKey];
+    }
+    toggleNode(nodeKey) {
+        this.state.expanded = {
+            ...this.state.expanded,
+            [nodeKey]: !this.state.expanded[nodeKey],
+        };
+    }
+    toggleMultiLevel() {
+        if (this.state.multiLevel) {
+            this.state.multiLevel = false;
+            this.state.expanded = {};
+            return;
+        }
+        this.state.multiLevel = true;
+        const expanded = {};
+        const walk = (nodes) => {
+            for (const n of nodes || []) {
+                if (n.child_count) {
+                    expanded[this.rowKey(n)] = true;
+                }
+                walk(n.children);
+            }
+        };
+        walk(this.props.components);
+        this.state.expanded = expanded;
+    }
+    flatten(nodes, depth = 0) {
+        const out = [];
+        const k = this.state.key;
+        const asc = this.state.asc;
+        const sorted = [...(nodes || [])].sort((a, b) => {
             const va = a[k], vb = b[k];
             if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
             return asc ? va - vb : vb - va;
         });
-        return arr;
+        for (const node of sorted) {
+            out.push(node);
+            if (this.state.multiLevel && this.isExpanded(this.rowKey(node))) {
+                out.push(...this.flatten(node.children, depth + 1));
+            }
+        }
+        return out;
+    }
+    get visibleRows() {
+        return this.flatten(this.props.components || []);
     }
 }
