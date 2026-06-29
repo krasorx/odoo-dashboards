@@ -24,7 +24,7 @@ export class EstimationFilters extends Component {
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 font-semibold">Variante de BOM</label>
-                    <select class="w-full border rounded p-2 text-sm" t-on-change="ev => props.state.bom_id = parseInt(ev.target.value) || false">
+                    <select class="w-full border rounded p-2 text-sm" t-on-change="onBomChange">
                         <t t-foreach="props.bomVariants" t-as="b" t-key="b.id">
                             <option t-att-value="b.id" t-att-selected="b.id === props.state.bom_id" t-esc="b.name"/>
                         </t>
@@ -33,12 +33,12 @@ export class EstimationFilters extends Component {
                 <div t-if="props.state.mode === 'quantity'">
                     <label class="text-xs text-gray-400 font-semibold">Cantidad objetivo</label>
                     <input type="number" class="w-full border rounded p-2 text-sm" t-att-value="props.state.qty"
-                        t-on-input="ev => props.state.qty = parseFloat(ev.target.value) || 0"/>
+                        t-on-input="onQtyInput"/>
                 </div>
                 <div t-else="">
                     <label class="text-xs text-gray-400 font-semibold">Presupuesto objetivo</label>
                     <input type="number" class="w-full border rounded p-2 text-sm" t-att-value="props.state.budget"
-                        t-on-input="ev => props.state.budget = parseFloat(ev.target.value) || 0"/>
+                        t-on-input="onBudgetInput"/>
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 font-semibold">Fecha de planificación</label>
@@ -69,5 +69,14 @@ export class EstimationFilters extends Component {
         const id = parseInt(ev.target.value) || false;
         this.props.state.product_id = id;
         this.props.onProductChange(id);
+    }
+    onBomChange(ev) {
+        this.props.state.bom_id = parseInt(ev.target.value) || false;
+    }
+    onQtyInput(ev) {
+        this.props.state.qty = parseFloat(ev.target.value) || 0;
+    }
+    onBudgetInput(ev) {
+        this.props.state.budget = parseFloat(ev.target.value) || 0;
     }
 }
