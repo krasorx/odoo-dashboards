@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Demo kit for Production Dashboard: two manufactured products whose
+            BoMs mix lot-tracked and serial-tracked components, with on-hand
+            stock in lots / serial numbers for estimation testing.
+        -->
+
+        <!-- Demo vendors (no dependency on base demo partners) -->
+        <record id="pd_vendor_electronics" model="res.partner">
+            <field name="name">PD Demo Electronics SA</field>
+            <field name="is_company" eval="True"/>
+            <field name="supplier_rank">1</field>
+        </record>
+        <record id="pd_vendor_sensors" model="res.partner">
+            <field name="name">PD Demo Sensores SRL</field>
+            <field name="is_company" eval="True"/>
+            <field name="supplier_rank">1</field>
+        </record>
+
+        <!-- ── Shared bought components (product 1: Gateway IoT) ─────────── -->
+        <record id="pd_comp_rf_serial" model="product.product">
+            <field name="name">PD Módulo RF (serie)</field>
+            <field name="default_code">PD-TRK-RF01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="standard_price">120.0</field>
+            <field name="list_price">180.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_comp_pcb_lot" model="product.product">
+            <field name="name">PD PCB principal (lote)</field>
+            <field name="default_code">PD-TRK-PCB01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">lot</field>
+            <field name="standard_price">35.0</field>
+            <field name="list_price">52.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_comp_cable" model="product.product">
+            <field name="name">PD Cable harness</field>
+            <field name="default_code">PD-TRK-CBL01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">none</field>
+            <field name="standard_price">8.5</field>
+            <field name="list_price">14.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_supplier_rf" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_rf_serial').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_electronics"/>
+            <field name="delay">5</field>
+            <field name="min_qty">1</field>
+            <field name="price">120.0</field>
+        </record>
+
+        <record id="pd_supplier_pcb" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_pcb_lot').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_electronics"/>
+            <field name="delay">7</field>
+            <field name="min_qty">1</field>
+            <field name="price">35.0</field>
+        </record>
+
+        <record id="pd_supplier_cable" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_cable').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_electronics"/>
+            <field name="delay">3</field>
+            <field name="min_qty">1</field>
+            <field name="price">8.5</field>
+        </record>
+
+        <!-- Finished good 1: serial-tracked gateway -->
+        <record id="pd_tmpl_fg_gateway" model="product.template">
+            <field name="name">PD Gateway IoT</field>
+            <field name="default_code">PD-TRK-FG01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="standard_price">0.0</field>
+            <field name="list_price">650.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="route_ids" eval="[Command.link(ref('mrp.route_warehouse0_manufacture'))]"/>
+        </record>
+
+        <function model="ir.model.data" name="_update_xmlids">
+            <value model="base" eval="[{
+                'xml_id': 'production_dashboard.pd_product_fg_gateway',
+                'record': obj().env.ref('production_dashboard.pd_tmpl_fg_gateway').product_variant_ids[0],
+                'noupdate': True,
+            }]"/>
+        </function>
+
+        <record id="pd_bom_gateway" model="mrp.bom">
+            <field name="product_tmpl_id" ref="pd_tmpl_fg_gateway"/>
+            <field name="product_qty">1.0</field>
+            <field name="type">normal</field>
+            <field name="produce_delay">4</field>
+            <field name="bom_line_ids" eval="[
+                Command.create({'product_id': ref('pd_comp_rf_serial'), 'product_qty': 1.0}),
+                Command.create({'product_id': ref('pd_comp_pcb_lot'), 'product_qty': 2.0}),
+                Command.create({'product_id': ref('pd_comp_cable'), 'product_qty': 4.0}),
+            ]"/>
+        </record>
+
+        <!-- ── Components (product 2: Monitor ambiental) ───────────────── -->
+        <record id="pd_comp_bat_lot" model="product.product">
+            <field name="name">PD Batería Li-ion (lote)</field>
+            <field name="default_code">PD-TRK-BAT01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">lot</field>
+            <field name="standard_price">55.0</field>
+            <field name="list_price">80.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_comp_sns_serial" model="product.product">
+            <field name="name">PD Sensor óptico (serie)</field>
+            <field name="default_code">PD-TRK-SNS01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="standard_price">28.0</field>
+            <field name="list_price">42.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_comp_enc_lot" model="product.product">
+            <field name="name">PD Carcasa ABS (lote)</field>
+            <field name="default_code">PD-TRK-ENC01</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">lot</field>
+            <field name="standard_price">12.0</field>
+            <field name="list_price">18.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="pd_supplier_bat" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_bat_lot').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_sensors"/>
+            <field name="delay">10</field>
+            <field name="min_qty">1</field>
+            <field name="price">55.0</field>
+        </record>
+
+        <record id="pd_supplier_sns" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_sns_serial').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_sensors"/>
+            <field name="delay">6</field>
+            <field name="min_qty">1</field>
+            <field name="price">28.0</field>
+        </record>
+
+        <record id="pd_supplier_enc" model="product.supplierinfo">
+            <field name="product_tmpl_id" model="product.template"
+                   eval="obj().env.ref('production_dashboard.pd_comp_enc_lot').product_tmpl_id.id"/>
+            <field name="partner_id" ref="pd_vendor_sensors"/>
+            <field name="delay">4</field>
+            <field name="min_qty">1</field>
+            <field name="price">12.0</field>
+        </record>
+
+        <!-- Finished good 2: lot-tracked environmental monitor -->
+        <record id="pd_tmpl_fg_monitor" model="product.template">
+            <field name="name">PD Monitor Ambiental</field>
+            <field name="default_code">PD-TRK-FG02</field>
+
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">lot</field>
+            <field name="standard_price">0.0</field>
+            <field name="list_price">420.0</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="route_ids" eval="[Command.link(ref('mrp.route_warehouse0_manufacture'))]"/>
+        </record>
+
+        <function model="ir.model.data" name="_update_xmlids">
+            <value model="base" eval="[{
+                'xml_id': 'production_dashboard.pd_product_fg_monitor',
+                'record': obj().env.ref('production_dashboard.pd_tmpl_fg_monitor').product_variant_ids[0],
+                'noupdate': True,
+            }]"/>
+        </function>
+
+        <record id="pd_bom_monitor" model="mrp.bom">
+            <field name="product_tmpl_id" ref="pd_tmpl_fg_monitor"/>
+            <field name="product_qty">1.0</field>
+            <field name="type">normal</field>
+            <field name="produce_delay">5</field>
+            <field name="bom_line_ids" eval="[
+                Command.create({'product_id': ref('pd_comp_bat_lot'), 'product_qty': 1.0}),
+                Command.create({'product_id': ref('pd_comp_sns_serial'), 'product_qty': 2.0}),
+                Command.create({'product_id': ref('pd_comp_enc_lot'), 'product_qty': 1.0}),
+            ]"/>
+        </record>
+
+        <!-- ── Lots / serial numbers ───────────────────────────────────── -->
+        <record id="pd_lot_rf_sn001" model="stock.lot">
+            <field name="name">SN-GW-RF-001</field>
+            <field name="product_id" ref="pd_comp_rf_serial"/>
+        </record>
+        <record id="pd_lot_rf_sn002" model="stock.lot">
+            <field name="name">SN-GW-RF-002</field>
+            <field name="product_id" ref="pd_comp_rf_serial"/>
+        </record>
+        <record id="pd_lot_rf_sn003" model="stock.lot">
+            <field name="name">SN-GW-RF-003</field>
+            <field name="product_id" ref="pd_comp_rf_serial"/>
+        </record>
+
+        <record id="pd_lot_pcb_a" model="stock.lot">
+            <field name="name">LOT-PCB-2026-A</field>
+            <field name="product_id" ref="pd_comp_pcb_lot"/>
+        </record>
+        <record id="pd_lot_pcb_b" model="stock.lot">
+            <field name="name">LOT-PCB-2026-B</field>
+            <field name="product_id" ref="pd_comp_pcb_lot"/>
+        </record>
+
+        <record id="pd_lot_bat_01" model="stock.lot">
+            <field name="name">LOT-BAT-2026-01</field>
+            <field name="product_id" ref="pd_comp_bat_lot"/>
+        </record>
+
+        <record id="pd_lot_sns_sn001" model="stock.lot">
+            <field name="name">SN-SNS-001</field>
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+        </record>
+        <record id="pd_lot_sns_sn002" model="stock.lot">
+            <field name="name">SN-SNS-002</field>
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+        </record>
+        <record id="pd_lot_sns_sn003" model="stock.lot">
+            <field name="name">SN-SNS-003</field>
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+        </record>
+        <record id="pd_lot_sns_sn004" model="stock.lot">
+            <field name="name">SN-SNS-004</field>
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+        </record>
+
+        <record id="pd_lot_enc_a" model="stock.lot">
+            <field name="name">LOT-ENC-2026-A</field>
+            <field name="product_id" ref="pd_comp_enc_lot"/>
+        </record>
+
+        <!-- ── On-hand stock (partial coverage for real-cost testing) ─── -->
+        <record id="pd_quant_rf_sn001" model="stock.quant">
+            <field name="product_id" ref="pd_comp_rf_serial"/>
+            <field name="lot_id" ref="pd_lot_rf_sn001"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">1</field>
+        </record>
+        <record id="pd_quant_rf_sn002" model="stock.quant">
+            <field name="product_id" ref="pd_comp_rf_serial"/>
+            <field name="lot_id" ref="pd_lot_rf_sn002"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">1</field>
+        </record>
+
+        <record id="pd_quant_pcb_a" model="stock.quant">
+            <field name="product_id" ref="pd_comp_pcb_lot"/>
+            <field name="lot_id" ref="pd_lot_pcb_a"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">12</field>
+        </record>
+        <record id="pd_quant_pcb_b" model="stock.quant">
+            <field name="product_id" ref="pd_comp_pcb_lot"/>
+            <field name="lot_id" ref="pd_lot_pcb_b"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">5</field>
+        </record>
+
+        <record id="pd_quant_cable" model="stock.quant">
+            <field name="product_id" ref="pd_comp_cable"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">40</field>
+        </record>
+
+        <record id="pd_quant_bat" model="stock.quant">
+            <field name="product_id" ref="pd_comp_bat_lot"/>
+            <field name="lot_id" ref="pd_lot_bat_01"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">8</field>
+        </record>
+
+        <record id="pd_quant_sns_sn001" model="stock.quant">
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+            <field name="lot_id" ref="pd_lot_sns_sn001"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">1</field>
+        </record>
+        <record id="pd_quant_sns_sn002" model="stock.quant">
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+            <field name="lot_id" ref="pd_lot_sns_sn002"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">1</field>
+        </record>
+        <record id="pd_quant_sns_sn003" model="stock.quant">
+            <field name="product_id" ref="pd_comp_sns_serial"/>
+            <field name="lot_id" ref="pd_lot_sns_sn003"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">1</field>
+        </record>
+
+        <record id="pd_quant_enc" model="stock.quant">
+            <field name="product_id" ref="pd_comp_enc_lot"/>
+            <field name="lot_id" ref="pd_lot_enc_a"/>
+            <field name="location_id" model="stock.location"
+                   eval="obj().env['stock.warehouse'].search([('company_id', '=', obj().env.company.id)], limit=1).lot_stock_id.id"/>
+            <field name="inventory_quantity">15</field>
+        </record>
+
+        <function model="stock.quant" name="action_apply_inventory">
+            <function eval="[[
+                ('id', 'in', [
+                    ref('production_dashboard.pd_quant_rf_sn001'),
+                    ref('production_dashboard.pd_quant_rf_sn002'),
+                    ref('production_dashboard.pd_quant_pcb_a'),
+                    ref('production_dashboard.pd_quant_pcb_b'),
+                    ref('production_dashboard.pd_quant_cable'),
+                    ref('production_dashboard.pd_quant_bat'),
+                    ref('production_dashboard.pd_quant_sns_sn001'),
+                    ref('production_dashboard.pd_quant_sns_sn002'),
+                    ref('production_dashboard.pd_quant_sns_sn003'),
+                    ref('production_dashboard.pd_quant_enc'),
+                ]),
+            ]]" model="stock.quant" name="search"/>
+        </function>
+    </data>
+</odoo>

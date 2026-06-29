@@ -10,6 +10,7 @@
         'security/ir.model.access.csv',
         'data/config_parameter.xml',
         'data/ir_cron.xml',
+        'data/demo_traceable_products.xml',
         'views/estimation_menu.xml',
     ],
     'assets': {
